@@ -6,23 +6,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class UDTListDTO extends ArrayList<UDTDTO> {
 	public UDTListDTO() {
 		super();
 	}
 	public UDTListDTO (
-		 Logger                          LOGGER
-		,Connection                      _con
+		 Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 		,final DbObjectDTO               dbObjectDTO
 	) {
 		this();
 
-		this.LOGGER      = LOGGER;
 		this.catdo       = catdo;
 		this.dbObjectDTO = dbObjectDTO;
 
@@ -45,81 +43,6 @@ public final class UDTListDTO extends ArrayList<UDTDTO> {
 		String            strObjectType     = null;
 
 		str_sql_query = catdo.getQueryText("DatabaseUDT", "strDatabaseName", dbObjectDTO.getDbName());
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t t.name\n"
-			 + "\t,(\n"
-			 + "\t\tSELECT\n"
-			 + "\t\t\tt3.name\n"
-			 + "\t\tFROM\n"
-			 + "\t\t\tsystypes t3\n"
-			 + "\t\tWHERE\n"
-			 + "\t\t\tt3.usertype = (\n"
-			 + "\t\t\t\tSELECT MIN(t2.usertype)\n"
-			 + "\t\t\t\tFROM systypes t2\n"
-			 + "\t\t\t\tWHERE\n"
-			 + "\t\t\t\t\tt2.type = t.type\n"
-			 + "\t\t\t\t\tAND t2.usertype <= t.usertype\n"
-			 + "\t\t\t)\n"
-			 + "\t ) AS base_type\n"
-			 + "\t,t.length\n"
-			 + "\t,t.prec\n"
-			 + "\t,t.scale\n"
-			 + "\t,t.allownulls\n"
-			 + "\t,t.tdefault\n"
-			 + "\t,ISNULL(o.name, '') AS default_name\n"
-			 + "FROM\n"
-			 + "\t" + str_db + "..systypes t\n"
-			 + "\tLEFT JOIN " + str_db + "..sysobjects o\n"
-			 + "\t\tON o.id = t.tdefault\n"
-			 + "WHERE\n"
-			 + "\tt.usertype > 100\n"
-			 + "ORDER BY\n"
-			 + "\tt.name ASC";
-		}
-		else if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t t.[name]             AS [name]\n"
-			 + "\t,NULL                 AS [base_type]\n"
-			 + "\t,t.[length]           AS [length]\n"
-			 + "\t,t.[prec]             AS [prec]\n"
-			 + "\t,t.[scale]            AS [scale]\n"
-			 + "\t,t.[allownulls]       AS [allownulls]\n"
-			 + "\t,NULL                 AS [tdefault]\n"
-			 + "\t,ISNULL(o.[name], '') AS [default_name]\n"
-			 + "FROM\n"
-			 + "\t[" + str_db + "].[dbo].[systypes] t\n"
-			 + "\tLEFT OUTER JOIN [" + str_db + "].[dbo].[sysobjects] o ON\n"
-			 + "\t\to.[id] = t.[tdefault]\n"
-			 + "WHERE\n"
-			 + "\tt.[tdefault] <> 0\n"
-			 + "ORDER BY\n"
-			 + "\tt.[name] ASC";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t t.[name]             AS [name]\n"
-			 + "\t,NULL                 AS [base_type]\n"
-			 + "\t,t.[max_length]       AS [length]\n"
-			 + "\t,t.[precision]        AS [prec]\n"
-			 + "\t,t.[scale]            AS [scale]\n"
-			 + "\t,t.[is_nullable]      AS [allownulls]\n"
-			 + "\t,NULL                 AS [tdefault]\n"
-			 + "\t,ISNULL(o.[name], '') AS [default_name]\n"
-			 + "FROM\n"
-			 + "\t[" + str_db + "].[sys].[types] t\n"
-			 + "\tLEFT OUTER JOIN [" + str_db + "].[sys].[objects] o ON\n"
-			 + "\t\to.[object_id] = t.[default_object_id]\n"
-			 + "WHERE\n"
-			 + "\tt.[is_user_defined] = 1\n"
-			 + "ORDER BY\n"
-			 + "\tt.[name] ASC";
-		}
-*/
 		if (str_sql_query != null) {
 			try {
 				stmt = _con.createStatement();
@@ -206,12 +129,12 @@ public final class UDTListDTO extends ArrayList<UDTDTO> {
 
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Process UDT", e);
 			}
 		}
 	}
 
-	private Logger                    LOGGER;
+	private final Logger              LOGGER = LoggerFactory.getLogger(UDTListDTO.class);
 	private CommonAllTablesDumpObject catdo;
 	private DbObjectDTO               dbObjectDTO;
 	private static final long         serialVersionUID = 8066304646158630387L;

@@ -2,9 +2,9 @@ package dbstructure.CommonAllTablesDump.dto;
 
 import java.sql.Connection;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class DefaultDTO extends DbObjectDTO {
 	public DefaultDTO (
@@ -17,13 +17,10 @@ public final class DefaultDTO extends DbObjectDTO {
 	}
 	public DefaultDTO (
 		 final DbObjectDTO               dbObjectDTO
-		,Logger                          LOGGER
 		,Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this(dbObjectDTO, null);
-
-		this.LOGGER = LOGGER;
 		this.catdo = catdo;
 
 		processDatabase(_con);
@@ -45,6 +42,6 @@ public final class DefaultDTO extends DbObjectDTO {
 	 * Class variables
 	 */
 	private String                    strDefaultText;
-	private Logger                    LOGGER;
+	private final Logger              LOGGER = LoggerFactory.getLogger(DefaultDTO.class);
 	private CommonAllTablesDumpObject catdo;
 }

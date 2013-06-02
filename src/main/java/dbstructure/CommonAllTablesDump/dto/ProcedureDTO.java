@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ProcedureDTO extends DbObjectDTO {
 	public ProcedureDTO(
@@ -31,15 +31,13 @@ public final class ProcedureDTO extends DbObjectDTO {
 	}
 	public ProcedureDTO (
 		 final DbObjectDTO               dbObjectDTO
-		,Logger                          LOGGER
 		,Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this(dbObjectDTO, null, 0, null);
-		this.LOGGER = LOGGER;
 
 		strProcedureText = catdo.RunDefnCopy (_con, this);
-		permissionList.addAll(new PermissionListDTO(this, LOGGER, _con, catdo));
+		permissionList.addAll(new PermissionListDTO(this, _con, catdo));
 
 		processDatabase(_con, catdo);
 	}
@@ -74,25 +72,6 @@ public final class ProcedureDTO extends DbObjectDTO {
 
 		str_sql_query = catdo.getQueryText("GetProcedureExecutionMode", "dbObjectDTO", this);
 
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\to.sysstat2\n"
-			 + "FROM\n"
-			 + "\t" + dbObject.getDbName() + "..sysobjects o\n"
-			 + "WHERE\n"
-			 + "\to.type = \'" + dbObject.getObjectType() + "\'\n"
-			 + "\tAND o.name = \'" + dbObject.getObjectName() + "\'";
-		}
-		else if (getRDBMSVersion() == "mssql200") {
-			str_sql_query = null;
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query = null;
-		}
-*/
-
 		if (str_sql_query != null) {
 			// procedure execution mode
 			try {
@@ -106,7 +85,7 @@ public final class ProcedureDTO extends DbObjectDTO {
 
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Get proc exec mode", e);
 			}
 		}
 	}
@@ -117,5 +96,5 @@ public final class ProcedureDTO extends DbObjectDTO {
 	private String              strProcedureText;
 	private int                 intTranmode;
 	private List<PermissionDTO> permissionList;
-	private Logger              LOGGER;
+	private final Logger        LOGGER = LoggerFactory.getLogger(ProcedureDTO.class);
 }

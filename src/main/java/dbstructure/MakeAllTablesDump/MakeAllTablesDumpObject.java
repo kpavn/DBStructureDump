@@ -5,8 +5,6 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -15,6 +13,8 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.tools.generic.NumberTool;
 import org.apache.velocity.tools.generic.DateTool;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.NodeList;
 
 import dbstructure.CommonAllTablesDump.*;
@@ -42,10 +42,8 @@ public class MakeAllTablesDumpObject {
 		this.int_active_threads = 0;
 		this.objectWait         = new Object();
 		this.needToWait         = true;
-		this.LOGGER             = Logger.getLogger (MakeAllTablesDumpObject.class);
 
 		this.commonAllTablesDumpObject = new CommonAllTablesDumpObject (
-			LOGGER,
 			myVelocity,
 			nodeListTemplate
 		);
@@ -191,7 +189,7 @@ public class MakeAllTablesDumpObject {
 				continue;
 			}
 
-			arrayInstanceObject.add(new DatabaseDTO(str_db, LOGGER, _con, commonAllTablesDumpObject));
+			arrayInstanceObject.add(new DatabaseDTO(str_db, _con, commonAllTablesDumpObject));
 		}
 		rs_sysdatabases.close();
 
@@ -253,7 +251,7 @@ public class MakeAllTablesDumpObject {
 			try {
 				intThreads = Integer.valueOf(strThreads);
 			} catch (NumberFormatException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Invalid parameter threads", e);
 			}
 		}
 
@@ -274,7 +272,7 @@ public class MakeAllTablesDumpObject {
 				}
 			}
 		} catch (InterruptedException e) {
-			LOGGER.error(e, e);
+			LOGGER.error("Error while wating for threads", e);
 		}
 
 		LOGGER.info("all threads finished");
@@ -316,7 +314,7 @@ public class MakeAllTablesDumpObject {
 				LOGGER.error("unknown object type:" + dbObjectDTO.getObjectType() + ";Object Name:" + dbObjectDTO.getObjectName());
 			}
 		} catch (SQLException e) {
-			LOGGER.error(e, e);
+			LOGGER.error("Error while dump object", e);
 		}
 	}
 
@@ -396,7 +394,7 @@ public class MakeAllTablesDumpObject {
 
 			out.close();
 		} catch (IOException e) {
-			LOGGER.error(e, e);
+			LOGGER.error("Error while creating fs objects", e);
 		}
 	}
 
@@ -405,7 +403,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processTable (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("tableInfo", new UserTableDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("tableInfo", new UserTableDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext (dbObject, ctx);
 	}
 
@@ -414,7 +412,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processProcedure (Connection _con, final DbObjectDTO dbObject) {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("procedureInfo", new ProcedureDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("procedureInfo", new ProcedureDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext (dbObject, ctx);
 	}
 
@@ -423,7 +421,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processView (Connection _con, final DbObjectDTO dbObject) {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("viewInfo", new ViewDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("viewInfo", new ViewDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext(dbObject, ctx);
 	}
 
@@ -432,7 +430,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processTrigger (Connection _con, final DbObjectDTO dbObject) {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("triggerInfo", new TriggerDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("triggerInfo", new TriggerDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext(dbObject, ctx);
 	}
 
@@ -441,7 +439,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processRule (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("ruleInfo", new RuleDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("ruleInfo", new RuleDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext(dbObject, ctx);
 	}
 
@@ -459,7 +457,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processUser (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("userInfo", new UserDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("userInfo", new UserDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext (dbObject, ctx);
 	}
 
@@ -468,7 +466,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processGroup (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		VelocityContext ctx = new VelocityContext();
-		ctx.put("groupInfo", new GroupDTO(dbObject, LOGGER, _con, commonAllTablesDumpObject));
+		ctx.put("groupInfo", new GroupDTO(dbObject, _con, commonAllTablesDumpObject));
 		writeVelocityContext (dbObject, ctx);
 	}
 
@@ -479,8 +477,7 @@ public class MakeAllTablesDumpObject {
 		if (mapMakeAllTablesDumpOptions.containsKey("linkedservers")) {
 			if (mapMakeAllTablesDumpOptions.get("linkedservers").compareTo("true") == 0) {
 				LinkedServerListDTO linkedServerListDTO = new LinkedServerListDTO (
-					 LOGGER
-					,_con
+					 _con
 					,commonAllTablesDumpObject
 				);
 	
@@ -506,8 +503,7 @@ public class MakeAllTablesDumpObject {
 		if (mapMakeAllTablesDumpOptions.containsKey("jobs")) {
 			if (mapMakeAllTablesDumpOptions.get("jobs").compareTo("true") == 0) {
 				JobListDTO jobListDTO = new JobListDTO (
-					 LOGGER
-					,_con
+					 _con
 					,commonAllTablesDumpObject
 				);
 
@@ -532,8 +528,7 @@ public class MakeAllTablesDumpObject {
 	private void processCategory (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		if ((mapMakeAllTablesDumpOptions.containsKey("categories")) && (mapMakeAllTablesDumpOptions.get("categories").compareTo("true") == 0)) {
 			CategoryListDTO categoryListDTO = new CategoryListDTO (
-				 LOGGER
-				,_con
+				 _con
 				,commonAllTablesDumpObject
 			);
 
@@ -557,8 +552,7 @@ public class MakeAllTablesDumpObject {
 	private void processLogin (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		if ((mapMakeAllTablesDumpOptions.containsKey("logins")) && (mapMakeAllTablesDumpOptions.get("logins").compareTo("true") == 0)) {
 			LoginListDTO loginListDTO = new LoginListDTO (
-				 LOGGER
-				,_con
+				 _con
 				,commonAllTablesDumpObject
 			);
 
@@ -581,8 +575,7 @@ public class MakeAllTablesDumpObject {
 	 */
 	private void processUdt (Connection _con, final DbObjectDTO dbObject) throws SQLException {
 		UDTListDTO udtListDTO = new UDTListDTO (
-			 LOGGER
-			,_con
+			 _con
 			,commonAllTablesDumpObject
 			,dbObject
 		);
@@ -776,7 +769,7 @@ public class MakeAllTablesDumpObject {
 					out.close();
 				}
 			} catch (IOException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while read stdin", e);
 			}
 		}
 
@@ -793,10 +786,8 @@ public class MakeAllTablesDumpObject {
 			new ThreadStreamRead (p.getInputStream(), dirTypeDirectory, dbObject.getObjectName() + ".out_log").start();
 			new ThreadStreamRead (p.getErrorStream(), dirTypeDirectory, dbObject.getObjectName() + ".err_log").start();
 			p.waitFor();
-		} catch (IOException e) {
-			LOGGER.error(e, e);
-		} catch (InterruptedException e) {
-			LOGGER.error(e, e);
+		} catch (IOException | InterruptedException e) {
+			LOGGER.error("Error in exec_cmd", e);
 		}
 	}
 
@@ -807,7 +798,7 @@ public class MakeAllTablesDumpObject {
 	private int                       int_active_threads;
 	private boolean                   needToWait;
 	private final Object              objectWait;
-	private final Logger              LOGGER;
+	private final Logger              LOGGER = LoggerFactory.getLogger(MakeAllTablesDumpObject.class);
 	private CommonAllTablesDumpObject commonAllTablesDumpObject;
 
 	private Date                      dateStartDateTime;

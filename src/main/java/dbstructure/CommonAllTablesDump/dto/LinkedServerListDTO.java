@@ -7,21 +7,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class LinkedServerListDTO extends ArrayList<LinkedServerDTO> {
 	public LinkedServerListDTO () {
 		super();
 	}
 	public LinkedServerListDTO (
-		 Logger                          LOGGER
-		,Connection                      _con
+		 Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this();
-		this.LOGGER = LOGGER;
 
 		processDatabase(_con, catdo);
 	}
@@ -73,11 +71,11 @@ public final class LinkedServerListDTO extends ArrayList<LinkedServerDTO> {
 
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Linked server list", e);
 			}
 		}
 	}
 
-	private Logger            LOGGER;
+	private final Logger LOGGER = LoggerFactory.getLogger(LinkedServerListDTO.class);
 	private static final long serialVersionUID = -918223727891828885L;
 }

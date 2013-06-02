@@ -6,9 +6,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class DatabaseDTO extends DbObjectDTO {
 	public DatabaseDTO (
@@ -47,12 +47,10 @@ public final class DatabaseDTO extends DbObjectDTO {
 	}
 	public DatabaseDTO (
 		 final String                    strDbName
-		,Logger                          LOGGER
 		,Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this(strDbName);
-		this.LOGGER = LOGGER;
 
 		processDatabase(_con, catdo);
 	}
@@ -341,192 +339,12 @@ public final class DatabaseDTO extends DbObjectDTO {
 		String    str_sql_query_dbowner  = null;
 
 		str_sql_query = catdo.getQueryText("DatabaseParameters", "databaseDTO", this);
-/*
-		// str_sql_query
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\t d.dbid\n"
-			 + "\t,d.suid\n"
-			 + "\t,d.status\n"
-			 + "\t,d.version\n"
-			 + "\t,d.logptr\n"
-			 + "\t,d.crdate\n"
-			 + "\t,d.dumptrdate\n"
-			 + "\t,d.status2\n"
-			 + "\t,d.audflags\n"
-			 + "\t,d.deftabaud\n"
-			 + "\t,d.defvwaud\n"
-			 + "\t,d.defpraud\n"
-			 + "\t,d.def_remote_type\n"
-			 + "\t,d.def_remote_loc\n"
-			 + "\t,d.status3\n"
-			 + "\t,d.status4\n"
-			 + "\t,0\n"
-			 + "FROM\n"
-			 + "\tmaster..sysdatabases d\n"
-			 + "WHERE\n"
-			 + "\td.name = \'" + databaseDTO.getDbName() + "\'";
-		}
-		else if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\t d.[dbid]    AS [dbid]\n"
-			 + "\t,0           AS [suid]\n"
-			 + "\t,d.[status]  AS [status]\n"
-			 + "\t,d.[version] AS [version]\n"
-			 + "\t,0           AS [logptr]\n"
-			 + "\t,d.[crdate]  AS [crdate]\n"
-			 + "\t,d.[crdate]  AS [dumptrdate]\n"
-			 + "\t,d.[status2] AS [status2]\n"
-			 + "\t,0           AS [audflags]\n"
-			 + "\t,0           AS [deftabaud]\n"
-			 + "\t,0           AS [defvwaud]\n"
-			 + "\t,0           AS [defpraud]\n"
-			 + "\t,0           AS [def_remote_type]\n"
-			 + "\t,'?'         AS [def_remote_loc]\n"
-			 + "\t,0           AS [status3]\n"
-			 + "\t,0           AS [status4]\n"
-			 + "\t,0           AS [snapshot_isolation_state]\n"
-			 + "FROM\n"
-			 + "\t[master]..[sysdatabases] d\n"
-			 + "WHERE\n"
-			 + "\td.[name] = '" + databaseDTO.getDbName() + "'";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			  "SELECT\n"
-			+ "\t d.[database_id]              AS [dbid]\n"
-			+ "\t,0                            AS [suid]\n"
-			+ "\t,d.[state]                    AS [status]\n"
-			+ "\t,d.[compatibility_level]      AS [version]\n"
-			+ "\t,0                            AS [logptr]\n"
-			+ "\t,d.[create_date]              AS [crdate]\n"
-			+ "\t,bs.[last_db_backup_date]     AS [dumptrdate]\n"
-			+ "\t,0                            AS [status2]\n"
-			+ "\t,0                            AS [audflags]\n"
-			+ "\t,0                            AS [deftabaud]\n"
-			+ "\t,0                            AS [defvwaud]\n"
-			+ "\t,0                            AS [defpraud]\n"
-			+ "\t,0                            AS [def_remote_type]\n"
-			+ "\t,'?'                          AS [def_remote_loc]\n"
-			+ "\t,0                            AS [status3]\n"
-			+ "\t,0                            AS [status4]\n"
-			+ "\t,d.[snapshot_isolation_state] AS [snapshot_isolation_state]\n"
-			+ "FROM\n"
-			+ "\t[master].[sys].[databases] d\n"
-			+ "\tLEFT OUTER JOIN (\n"
-			+ "\t\tSELECT\n"
-			+ "\t\t\t bs.[database_name]          AS [database_name]\n"
-			+ "\t\t\t,bs.[type]                    AS [type]\n"
-			+ "\t\t\t,MAX(bs.[backup_finish_date]) AS [last_db_backup_date]\n"
-			+ "\t\tFROM\n"
-			+ "\t\t\t[msdb].[dbo].[backupset] bs\n"
-			+ "\t\tWHERE\n"
-			+ "\t\t\tbs.[server_name] = @@SERVERNAME\n"
-			+ "\t\tGROUP BY\n"
-			+ "\t\t\t bs.[database_name]\n"
-			+ "\t\t\t,bs.[type]\n"
-			+ "\t\t) bs ON\n"
-			+ "\t\t\tbs.[database_name] = d.[name]\n"
-			+ "\t\t\tAND bs.[type] = 'D'\n"
-			+ "WHERE\n"
-			+ "\td.[name] = '" + databaseDTO.getDbName() + "'";
-		}
-*/
 		str_sql_query_dbdevice = catdo.getQueryText("DatabaseDevices", "databaseDTO", this);
-/*
-		// str_sql_query_dbdevice
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query_dbdevice =
-			   "SELECT\n"
-			 + "\t dv.name\n"
-			 + "\t,dv.phyname\n"
-			 + "\t,us.size * 2048\n"
-			 + "\t,us.segmap\n"
-			 + "\t,us.crdate\n"
-			 + "\t,CASE WHEN (us.segmap & 4) = 0) THEN 1 ELSE 0 END AS isDataDevice\n"
-			 + "\t,CASE WHEN (us.segmap & 4) > 0) THEN 1 ELSE 0 END AS isLogDevice\n"
-			 + "FROM\n"
-			 + "\t master..sysdatabases d\n"
-			 + "\t,master..sysdevices dv\n"
-			 + "\t,master..sysusages us\n"
-			 + "WHERE\n"
-			 + "\td.name = \'" + databaseDTO.getDbName() + "\'"
-			 + "\tAND us.dbid = d.dbid\n"
-			 + "\tAND us.vstart BETWEEN dv.low AND dv.high";
-		}
-		else if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query_dbdevice =
-			   "SELECT\n"
-			 + "\t t.[name]                                              AS [name]\n"
-			 + "\t,t.[filename]                                          AS [phyname]\n"
-			 + "\t,CONVERT(BIGINT, t.[size]) * CONVERT(BIGINT, 8192)     AS [size]\n"
-			 + "\t,NULL                                                  AS [segmap]\n"
-			 + "\t,NULL                                                  AS [crdate]\n"
-			 + "\t,CASE WHEN ((t.[status] & 0x40) = 0) THEN 1 ELSE 0 END AS [isDataDevice]\n"
-			 + "\t,CASE WHEN ((t.[status] & 0x40) > 0) THEN 1 ELSE 0 END AS [isLogDevice]\n"
-			 + "FROM\n"
-			 + "\t[" + databaseDTO.getDbName() + "].[dbo].[sysfiles] t\n"
-			 + "ORDER BY\n"
-			 + "\tt.fileid";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query_dbdevice =
-			   "SELECT\n"
-			 + "\t t.[name]                                          AS [name]\n"
-			 + "\t,t.[physical_name]                                 AS [phyname]\n"
-			 + "\t,CONVERT(BIGINT, t.[size]) * CONVERT(BIGINT, 8192) AS [size]\n"
-			 + "\t,NULL                                              AS [segmap]\n"
-			 + "\t,NULL                                              AS [crdate]\n"
-			 + "\t,CASE WHEN (t.[type] = 0) THEN 1 ELSE 0 END        AS [isDataDevice]\n"
-			 + "\t,CASE WHEN (t.[type] = 1) THEN 1 ELSE 0 END        AS [isLogDevice]\n"
-			 + "FROM\n"
-			 + "\t[" + databaseDTO.getDbName() + "].[sys].[database_files] t\n"
-			 + "ORDER BY\n"
-			 + "\tt.file_id";
-		}
-*/
 		str_sql_query_dbowner  = catdo.getQueryText("DatabaseOwner", "databaseDTO", this);
-/*
-		// str_sql_query_dbowner
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query_dbowner =
-			   "SELECT\n"
-			 + "\tl.name\n"
-			 + "FROM\n"
-			 + "\tmaster..syslogins l\n"
-			 + "\tINNER JOIN master..sysdatabases d ON\n"
-			 + "\t\td.sid = l.sid\n"
-			 + "WHERE\n"
-			 + "\td.name = \'" + databaseDTO.getDbName() + "\'";
-		}
-		else if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query_dbowner =
-			   "SELECT\n"
-			 + "\tSUSER_SNAME(d.[sid])\n"
-			 + "FROM\n"
-			 + "\t[master].[dbo].[sysdatabases] d\n"
-			 + "WHERE\n"
-			 + "\td.[name] = \'" + databaseDTO.getDbName() + "\'";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query_dbowner =
-			   "SELECT\n"
-			 + "\tl.[name]\n"
-			 + "FROM\n"
-			 + "\t[master].[sys].[databases] d\n"
-			 + "\tLEFT OUTER JOIN [master].[sys].[syslogins] l ON\n"
-			 + "\t\tl.[sid] = d.[owner_sid]\n"
-			 + "WHERE\n"
-			 + "\td.[name] = \'" + databaseDTO.getDbName() + "\'";
-		}
-*/
 		if (str_sql_query != null) {
 			try {
 				stmt = _con.createStatement();
-	
-				
+
 				rs_db_prm = stmt.executeQuery(str_sql_query);
 	
 				while (rs_db_prm.next()) {
@@ -578,7 +396,7 @@ public final class DatabaseDTO extends DbObjectDTO {
 	
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while process database parameters", e);
 			}
 		}
 	}
@@ -607,5 +425,5 @@ public final class DatabaseDTO extends DbObjectDTO {
 	private int                     intSnapshotIsolationState;
 	private List<DbObjectDTO>       listDbObject;
 	private List<DatabaseDeviceDTO> listDbDevice;
-	private Logger                  LOGGER;
+	private final Logger            LOGGER = LoggerFactory.getLogger(DatabaseDTO.class);
 }

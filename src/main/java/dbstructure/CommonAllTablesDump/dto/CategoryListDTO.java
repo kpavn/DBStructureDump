@@ -6,22 +6,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class CategoryListDTO extends ArrayList<CategoryDTO> {
 	public CategoryListDTO() {
 		super();
 	}
 	public CategoryListDTO (
-		 Logger                          LOGGER
-		,Connection                      _con
+		 Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this();
-
-		this.LOGGER = LOGGER;
 		this.catdo  = catdo;
 
 		processDatabase(_con);
@@ -32,23 +29,6 @@ public final class CategoryListDTO extends ArrayList<CategoryDTO> {
 
 		str_sql_query = catdo.getQueryText("ServerCategories", null, null);
 
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query = null;
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\t c.[name] AS [category_name]\n"
-			 + "\t,N'JOB'   AS [category_class]\n"
-			 + "FROM\n"
-			 + "\t[msdb].[dbo].[sysjobs] j\n"
-			 + "\tINNER JOIN [msdb].[dbo].[syscategories] c ON\n"
-			 + "\t\tc.[category_id] = j.[category_id]\n"
-			 + "GROUP BY\n"
-			 + "\tc.[name]";
-		}
-*/
 		if (str_sql_query != null) {
 			try {
 				Statement stmt = _con.createStatement();
@@ -64,12 +44,12 @@ public final class CategoryListDTO extends ArrayList<CategoryDTO> {
 
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Server categories", e);
 			}
 		}
 	}
 
-	private Logger                    LOGGER;
+	private final Logger              LOGGER = LoggerFactory.getLogger(CategoryListDTO.class);
 	private CommonAllTablesDumpObject catdo;
 	private static final long         serialVersionUID = 2947720036928883508L;
 }

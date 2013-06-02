@@ -6,9 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class GroupDTO extends DbObjectDTO {
 	public GroupDTO(
@@ -21,13 +21,11 @@ public final class GroupDTO extends DbObjectDTO {
 	}
 	public GroupDTO (
 		 final DbObjectDTO               dbObjectDTO
-		,Logger                          LOGGER
 		,Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this(dbObjectDTO);
 
-		this.LOGGER = LOGGER;
 		this.catdo  = catdo;
 
 		processDatabase(_con);
@@ -59,46 +57,6 @@ public final class GroupDTO extends DbObjectDTO {
 
 		str_sql_query_group_users = catdo.getQueryText("GroupUsers", "dbObjectDTO", this);
 		str_sql_query_group_permissions = catdo.getQueryText("GroupPermissions", "dbObjectDTO", this);
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t u.name AS group_name\n"
-			 + "FROM\n"
-			 + "\t" + str_db + "..sysusers u\n"
-			 + "\tLEFT JOIN " + str_db + "..sysroles r ON u.uid = r.lrid\n"
-			 + "WHERE\n"
-			 + "\tu.suid = -2\n"
-			 + "\tAND u.uid <> 0\n"
-			 + "\tAND u.uid >= 16384\n"
-			 + "\tAND u.uid = u.gid\n"
-			 + "\tAND r.lrid IS NULL\n"
-			 + "ORDER BY\n"
-			 + "\tu.uid";
-		}
-		if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t u.[name] AS [group_name]\n"
-			 + "FROM\n"
-			 + "\t[" + str_db + "]..[sysusers] u\n"
-			 + "\tINNER JOIN [" + str_db + "]..[sysmembers] r ON\n"
-			 + "\t\tr.[memberuid] = u.[uid]\n"
-			 + "GROUP BY\n"
-			 + "\tu.[name]";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\tu.[name] AS [group_name]\n"
-			 + "FROM\n"
-			 + "\t[" + str_db + "].[sys].[sysmembers] m\n"
-			 + "\tINNER JOIN [" + str_db + "].[sys].[sysusers] u ON\n"
-			 + "\t\tu.[uid] = m.[groupuid]\n"
-			 + "GROUP BY\n"
-			 + "\tu.[name]";
-		}
-*/
 
 		if (str_sql_query_group_users != null) {
 			try {
@@ -124,7 +82,7 @@ public final class GroupDTO extends DbObjectDTO {
 
 				pstmt_group_users.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while get groups", e);
 			}
 		}
 
@@ -154,7 +112,7 @@ public final class GroupDTO extends DbObjectDTO {
 
 				pstmt_group_permissions.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while get permissions", e);
 			}
 		}
 	}
@@ -164,6 +122,6 @@ public final class GroupDTO extends DbObjectDTO {
 	 */
 	private ArrayList<UserDTO>        listUser;
 	private ArrayList<PermissionDTO>  listPermission;
-	private Logger                    LOGGER;
+	private final Logger              LOGGER = LoggerFactory.getLogger(GroupDTO.class);
 	private CommonAllTablesDumpObject catdo;
 }

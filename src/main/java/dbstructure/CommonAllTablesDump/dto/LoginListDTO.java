@@ -7,21 +7,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class LoginListDTO extends ArrayList<LoginDTO> {
 	public LoginListDTO() {
 		super();
 	}
 	public LoginListDTO (
-		 Logger                          LOGGER
-		,Connection                      _con
+         Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
 		this();
-		this.LOGGER = LOGGER;
 		this.catdo  = catdo;
 
 		processDatabase(_con);
@@ -33,39 +31,6 @@ public final class LoginListDTO extends ArrayList<LoginDTO> {
 
 		str_sql_query = catdo.getQueryText("ServerLogins", null, null);
 		str_sql_query_login_roles = catdo.getQueryText("ServerLoginRoles", null, null);
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t sl.name     AS name\n"
-			 + "\t,sl.dbname   AS dbname\n"
-			 + "\t,sl.language AS language\n"
-			 + "\t,sl.fullname AS fullname\n"
-			 + "\t,0           AS isntname\n"
-			 + "FROM\n"
-			 + "\tmaster..syslogins sl\n"
-			 + "WHERE\n"
-			 + "\tsl.name NOT IN ('sa')\n"
-			 + "ORDER BY\n"
-			 + "\tsl.suid ASC\n";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\t sl.[name]                                  AS [name]\n"
-			 + "\t,sl.[dbname]                                AS [dbname]\n"
-			 + "\t,sl.[language]                              AS [language]\n"
-			 + "\t,sl.[loginname]                             AS [fullname]\n"
-			 + "\t,sl.[isntname]                              AS [isntname]\n"
-			 + "\t,[master].[dbo].[fn_varbintohexstr](sl.sid) AS [sid]\n"
-			 + "FROM\n"
-			 + "\t[master].[sys].[syslogins] sl\n"
-			 + "WHERE\n"
-			 + "\tsl.[name] NOT IN ('sa')\n"
-			 + "ORDER BY\n"
-			 + "\tsl.[sid] ASC";
-		}
-*/
 
 		if (str_sql_query != null) {
 			try {
@@ -104,12 +69,12 @@ public final class LoginListDTO extends ArrayList<LoginDTO> {
 
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while get list of logins", e);
 			}
 		}
 	}
 
-	private Logger                    LOGGER;
+	private Logger                    LOGGER = LoggerFactory.getLogger(LoginListDTO.class);
 	private CommonAllTablesDumpObject catdo;
 	private static final long         serialVersionUID = -8948693548004568332L;
 }

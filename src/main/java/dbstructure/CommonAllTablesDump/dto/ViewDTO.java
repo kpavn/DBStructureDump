@@ -3,9 +3,9 @@ package dbstructure.CommonAllTablesDump.dto;
 import java.sql.Connection;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import dbstructure.CommonAllTablesDump.CommonAllTablesDumpObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ViewDTO extends DbObjectDTO {
 	public ViewDTO(
@@ -24,12 +24,10 @@ public final class ViewDTO extends DbObjectDTO {
 	}
 	public ViewDTO (
 		 final DbObjectDTO               dbObjectDTO
-		,Logger                          LOGGER
 		,Connection                      _con
 		,final CommonAllTablesDumpObject catdo
 	) {
-		this(dbObjectDTO, null, null);
-		this.LOGGER = LOGGER;
+		this(dbObjectDTO, (String) null, null);
 		this.catdo  = catdo;
 
 		processDatabase(_con);
@@ -37,7 +35,7 @@ public final class ViewDTO extends DbObjectDTO {
 
 	private void processDatabase (Connection _con) {
 		strViewText = catdo.RunDefnCopy(_con, this);
-		permissionList.addAll(new PermissionListDTO(this, LOGGER, _con, catdo));
+		permissionList.addAll(new PermissionListDTO(this, _con, catdo));
 	}
 
 	/*
@@ -55,6 +53,6 @@ public final class ViewDTO extends DbObjectDTO {
 	 */
 	private String                    strViewText;
 	private ArrayList<PermissionDTO>  permissionList;
-	private Logger                    LOGGER;
+	private final Logger              LOGGER = LoggerFactory.getLogger(ViewDTO.class);
 	private CommonAllTablesDumpObject catdo;
 }

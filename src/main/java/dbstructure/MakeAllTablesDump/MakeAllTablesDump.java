@@ -1,5 +1,6 @@
 package dbstructure.MakeAllTablesDump;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.*;
@@ -177,14 +178,8 @@ public class MakeAllTablesDump {
 					}
 				}
 			}
-		} catch (ParserConfigurationException e) {
-			LOGGER.debug (e, e);
-		} catch (IOException e) {
-			LOGGER.debug (e, e);
-		} catch (SAXException e) {
-			LOGGER.debug (e, e);
-		} catch (Exception e) {
-			LOGGER.debug (e, e);
-		}
-	}
+		} catch (ParserConfigurationException | IOException | SAXException | ClassNotFoundException | SQLException e) {
+            LOGGER.error("Error while processing", e);
+        }
+    }
 }

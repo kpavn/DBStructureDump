@@ -6,9 +6,10 @@ import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -21,6 +22,7 @@ import org.apache.velocity.app.VelocityEngine;
 import dbstructure.CommonAllTablesDump.dto.DatabaseDTO;
 import dbstructure.CommonAllTablesDump.dto.DbObjectDTO;
 import dbstructure.CommonAllTablesDump.dto.DefaultDTO;
+import org.xml.sax.SAXException;
 
 /**
  * CommonAllTablesDumpObject
@@ -32,11 +34,9 @@ public class CommonAllTablesDumpObject {
 	 * constructor: only initialisation the variables and memory allocation
 	 */
 	public CommonAllTablesDumpObject (
-		 Logger         LOGGER
-		,VelocityEngine myVelocity
+         VelocityEngine myVelocity
 		,final NodeList nodeListTemplate
 	) {
-		this.LOGGER              = LOGGER;
 		this.myVelocity          = myVelocity;
 		this.nodeListTemplate    = nodeListTemplate;
 		this.strRDBMSVersion     = null;
@@ -69,7 +69,7 @@ public class CommonAllTablesDumpObject {
 				return;
 			}
 		} catch (SQLException e) {
-			LOGGER.error(e, e);
+			LOGGER.error("Error while determnine db version", e);
 			return;
 		}
 
@@ -113,13 +113,11 @@ public class CommonAllTablesDumpObject {
 								);
 							}
 						}
-					} catch (IOException e) {
-						LOGGER.debug (e, e);
-					} catch (Exception e) {
-						LOGGER.debug (e, e);
-					}
+					} catch (IOException | ParserConfigurationException | SAXException e) {
+						LOGGER.debug ("Error while setup config for db version", e);
+                    }
 
-					break;
+                    break;
 				}
 			}
 		}
@@ -166,29 +164,6 @@ public class CommonAllTablesDumpObject {
 
 		str_sql_query = getQueryText("CountOfAllRows", "dbObjectDTO", dbObject);
 
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\tCOUNT(*)\n"
-			 + "FROM\n"
-			 + "\t" + dbObject.getDbName() + ".." + dbObject.getObjectName() + '\n';
-		}
-		else if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\tCOUNT(*)\n"
-			 + "FROM\n"
-			 + "\t[" + dbObject.getDbName() + "].[" + dbObject.getObjectOwner() + "].[" + dbObject.getObjectName() + "]\n";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\tCOUNT(*)\n"
-			 + "FROM\n"
-			 + "\t[" + dbObject.getDbName() + "].[" + dbObject.getObjectSchema() + "].[" + dbObject.getObjectName() + "]\n";
-		}
-*/
 		try {
 			Statement stmt = _con.createStatement();
 
@@ -200,7 +175,7 @@ public class CommonAllTablesDumpObject {
 			rs.close();
 			stmt.close();
 		} catch (SQLException e) {
-			LOGGER.error(e, e);
+			LOGGER.error("Error while get # of rows", e);
 		}
 
 		return int_row_count;
@@ -218,39 +193,7 @@ public class CommonAllTablesDumpObject {
 		StringBuffer sb            = new StringBuffer();
 
 		str_sql_query = getQueryText("GetObjectText", "dbObjectDTO", dbObject);
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			 "SELECT\n"
-			 + "\ts.text\n"
-			 + "FROM\n"
-			 + "\t " + dbObject.getDbName() + "..syscomments s\n"
-			 + "\t," + dbObject.getDbName() + "..sysobjects o\n"
-			 + "WHERE\n"
-			 + "\ts.id = o.id\n"
-			 + "\tAND o.name = '" + dbObject.getObjectName() + "'\n"
-			 + "ORDER BY\n"
-			 + "\t s.number ASC\n"
-			 + "\t,s.colid2 ASC\n"
-			 + "\t,s.colid ASC";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\tsc.[text]\n"
-			 + "FROM\n"
-			 + "\t[" + dbObject.getDbName() + "].[sys].[syscomments] sc\n"
-			 + "\tINNER JOIN [" + dbObject.getDbName() + "].[sys].[objects] o ON\n"
-			 + "\t\to.[object_id] = sc.[id]\n"
-			 + "\t\tAND o.[name] = '" + dbObject.getObjectName() + "'\n"
-			 + "\tINNER JOIN [" + dbObject.getDbName() + "].[sys].[schemas] sch ON\n"
-			 + "\t\tsch.[schema_id] = o.[schema_id]\n"
-			 + "\t\tAND sch.[name] = '" + dbObject.getObjectSchema() + "'\n"
-			 + "ORDER BY\n"
-			 + "\t sc.[number] ASC\n"
-			 + "\t,sc.[colid] ASC";
-		}
-*/
+
 		if (str_sql_query != null) {
 			try {
 				stmt = _con.createStatement();
@@ -264,7 +207,7 @@ public class CommonAllTablesDumpObject {
 
 				stmt.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while get object text", e);
 			}
 		}
 
@@ -294,134 +237,6 @@ public class CommonAllTablesDumpObject {
 
 		str_sql_query = getQueryText("GetAllDatabaseObjects", "strDatabaseName", databaseDTO.getDbName());
 
-/*
-		if (getRDBMSVersion() == "sybase") {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\t o.type\n"
-			 + "\t,o.name\n"
-			 + "\t,NULL\n"
-			 + "\t,NULL\n"
-			 + "FROM\n"
-			 + "\t " + strDbName + "..sysobjects o LEFT JOIN " + strDbName + "..systabstats s ON o.id = s.id AND s.indid = 0\n"
-			 + "WHERE\n"
-			 + "\to.type IN ('V', 'U', 'S')\n"
-
-			 + "UNION ALL\n"
-			 + "SELECT\n"
-			 + "\t o.type\n"
-			 + "\t,o.name\n"
-			 + "\t,NULL\n"
-			 + "\t,NULL\n"
-			 + "FROM\n"
-			 + "\t" + strDbName + "..sysobjects o\n"
-			 + "WHERE\n"
-			 + "\to.type IN ('P', 'TR')\n"
-
-			 + "UNION ALL\n"
-			 + "SELECT\n"
-			 + "\t o.type\n"
-			 + "\t,o.name\n"
-			 + "\t,NULL\n"
-			 + "\t,NULL\n"
-			 + "FROM\n"
-			 + "\t " + strDbName + "..sysobjects o\n"
-			 + "\t," + strDbName + "..systypes t\n"
-			 + "WHERE\n"
-			 + "\tt.usertype > 100\n"
-			 + "\tAND t.tdefault > 0\n"
-			 + "\tAND o.id = t.tdefault\n"
-			 + "\tAND o.type IN ('D')\n"
-
-			 + "UNION ALL\n"
-			 + "SELECT\n"
-			 + "\t o.type\n"
-			 + "\t,o.name\n"
-			 + "\t,NULL\n"
-			 + "\t,NULL\n"
-			 + "FROM\n"
-			 + "\t " + strDbName + "..sysobjects o\n"
-			 + "WHERE\n"
-			 + "\to.type IN ('R')\n"
-			 + "\tAND o.id NOT IN (\n"
-			 + "\t\tSELECT\n"
-			 + "\t\t\tc.constrid\n"
-			 + "\t\t\tFROM\n"
-			 + "\t\t\t\t" + strDbName + "..sysconstraints c\n"
-			 + "\t)";
-		}
-		else if (getRDBMSVersion() == "mssql2000") {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\t o.type AS [type]\n"
-			 + "\t,o.name AS [name]\n"
-			 + "\t,u.name AS [owner]\n"
-			 + "\t,u.name AS [schema]\n"
-			 + "FROM\n"
-			 + "\t" + strDbName + "..sysobjects o\n"
-			 + "\tLEFT OUTER JOIN " + strDbName + "..sysusers u ON\n"
-			 + "\t\tu.uid = o.uid\n"
-			 + "WHERE\n"
-			 + "\to.type IN ('V', 'U', 'S')\n"
-
-			 + "UNION ALL\n"
-
-			 + "SELECT\n"
-			 + "\t o.type AS [type]\n"
-			 + "\t,o.name AS [name]\n"
-			 + "\t,u.name AS [owner]\n"
-			 + "\t,u.name AS [schema]\n"
-			 + "FROM\n"
-			 + "\t" + strDbName + "..sysobjects o\n"
-			 + "\tLEFT OUTER JOIN " + strDbName + "..sysusers u ON\n"
-			 + "\t\tu.uid = o.uid\n"
-			 + "WHERE\n"
-			 + "\to.type IN ('P', 'TR')\n"
-
-			 + "UNION ALL\n"
-
-			 + "SELECT\n"
-			 + "\t o.type AS [type]\n"
-			 + "\t,o.name AS [name]\n"
-			 + "\t,u.name AS [owner]\n"
-			 + "\t,u.name AS [schema]\n"
-			 + "FROM\n"
-			 + "\t" + strDbName + "..sysobjects o\n"
-			 + "\tLEFT OUTER JOIN " + strDbName + "..sysusers u ON\n"
-			 + "\t\tu.uid = o.uid\n"
-			 + "WHERE\n"
-			 + "\to.type IN ('D')\n"
-
-			 + "UNION ALL\n"
-
-			 + "SELECT\n"
-			 + "\t o.[type] AS [type]\n"
-			 + "\t,o.[name] AS [name]\n"
-			 + "\t,u.[name] AS [owner]\n"
-			 + "\t,u.[name] AS [schema]\n"
-			 + "FROM\n"
-			 + "\t[" + strDbName + "]..[sysobjects] o\n"
-			 + "\tLEFT OUTER JOIN [" + strDbName + "]..[sysusers] u ON\n"
-			 + "\t\tu.[uid] = o.[uid]\n"
-			 + "WHERE\n"
-			 + "\to.[type] IN ('R')\n";
-		}
-		else if ((getRDBMSVersion() == "mssql2005") || (getRDBMSVersion() == "mssql2008")) {
-			str_sql_query =
-			   "SELECT\n"
-			 + "\t o.[type] AS [type]\n"
-			 + "\t,o.[name] AS [name]\n"
-			 + "\t,s.[name] AS [owner]\n"
-			 + "\t,s.[name] AS [schema]\n"
-			 + "FROM\n"
-			 + "\t[" + strDbName + "].[sys].[objects] o\n"
-			 + "\tLEFT OUTER JOIN [" + strDbName + "].[sys].[schemas] s ON\n"
-			 + "\t\ts.[schema_id] = o.[schema_id]\n"
-			 + "WHERE\n"
-			 + "\to.[type] IN ('V', 'U', 'S', 'P', 'TR', 'D', 'R')";
-		}
-*/
-
 		arrayDbObject.clear();
 
 		if (str_sql_query != null) {
@@ -446,7 +261,7 @@ public class CommonAllTablesDumpObject {
 				}
 				rs_sysobjects.close();
 			} catch (SQLException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error while get list of database objects", e);
 			}
 		}
 
@@ -510,7 +325,7 @@ public class CommonAllTablesDumpObject {
 					out.close();
 				}
 			} catch (IOException e) {
-				LOGGER.error(e, e);
+				LOGGER.error("Error in stdin read", e);
 			}
 		}
 
@@ -519,7 +334,7 @@ public class CommonAllTablesDumpObject {
 		private String         strFileNameOut;
 	}
 
-	private Logger         LOGGER;
+	private final Logger   LOGGER = LoggerFactory.getLogger(CommonAllTablesDumpObject.class);
 	private String         strRDBMSVersion;
 	private TQuery         query;
 	private VelocityEngine myVelocity;
