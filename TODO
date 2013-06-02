@@ -1,0 +1,3 @@
+Change log4j configuration to slf4j/logback analog
+Change all occurrences of log4j to slf4j
+Perform test build

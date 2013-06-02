@@ -10,13 +10,13 @@
 	</layout>
 </appender>
 
-<appender name="MakeAllTablesDump" class="dbstructure.dbstructure.MakeAllTablesDump.MakeAllTablesDump">
+<appender name="MakeAllTablesDump" class="dbstructure.MakeAllTablesDump.MakeAllTablesDump">
 	<layout class="org.apache.log4j.PatternLayout">
 		<param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %p %c{1} - %m%n"/>
 	</layout>
 </appender>
 
-<appender name="MakeAllTablesDumpObject" class="dbstructure.dbstructure.MakeAllTablesDump.MakeAllTablesDumpObject">
+<appender name="MakeAllTablesDumpObject" class="dbstructure.MakeAllTablesDump.MakeAllTablesDumpObject">
 	<layout class="org.apache.log4j.PatternLayout">
 		<param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %p %c{1} - %m%n"/>
 	</layout>
