@@ -1,0 +1,28 @@
+#set ( $strSql = ".sql" )
+\documentclass[a4paper,oneside,10pt]{article}
+\usepackage[english]{babel}
+\usepackage{ifpdf}
+\usepackage{html}
+\usepackage{fancyhdr}
+\usepackage{ltxtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+
+\addtolength{\voffset}{-2.5cm}
+\addtolength{\hoffset}{-2.5cm}
+\addtolength{\textwidth}{5cm}
+\addtolength{\textheight}{5cm}
+
+\linespread{1.3}
+
+\begin{document}
+
+\tableofcontents
+
+#foreach ( $object in $DbObjectsInfo )
+
+\subsection{$object.StrToTeX($object.getObjectName())}
+\LTXtable{\linewidth}{$object.getDb()/$object.getObjectType()/$object.getObjectName()$strSql}
+
+#end
+\end{document}

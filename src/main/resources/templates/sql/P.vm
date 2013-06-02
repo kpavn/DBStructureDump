@@ -1,0 +1,33 @@
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'P' AND o.name = '$procedureInfo.getProcedureName()' AND o.uid = User_id())
+	DROP PROCEDURE $procedureInfo.getProcedureName()
+go
+$procedureInfo.getProcedureText()
+go
+##------------------------------------------------------------------------------
+## execution mode
+##------------------------------------------------------------------------------
+#if ( $procedureInfo.getProcedureExecMode() != 'unchained' )
+--------------------------------------------------------------------------------
+-- Procedure transaction execution mode
+--------------------------------------------------------------------------------
+EXEC sp_procxmode '$procedureInfo.getProcedureName()', '$procedureInfo.getProcedureExecMode()'
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $procedureInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+--------------------------------------------------------------------------------
+-- CW permissions part in file
+--------------------------------------------------------------------------------
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 0)GRANT $permission.GetRight() ON $procedureInfo.getProcedureName() TO $permission.GetUser() WITH GRANT OPTION#end
+#if ($intProtectType == 1)GRANT $permission.GetRight() ON $procedureInfo.getProcedureName() TO $permission.GetUser()#end
+#if ($intProtectType == 2)REVOKE $permission.GetRight() ON $procedureInfo.getProcedureName() TO $permission.GetUser()#end
+
+##go
+#end
+go
+#end

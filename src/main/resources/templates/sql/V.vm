@@ -1,0 +1,23 @@
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'V' AND o.name = '$viewInfo.getViewName()' AND o.uid = User_id())
+	DROP VIEW $viewInfo.getViewName()
+go
+$viewInfo.getViewText()
+go
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $viewInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+--------------------------------------------------------------------------------
+-- CW permissions part in file
+--------------------------------------------------------------------------------
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 0)GRANT $permission.GetRight() ON $viewInfo.getViewName() TO $permission.GetUser() WITH GRANT OPTION#end
+#if ($intProtectType == 1)GRANT $permission.GetRight() ON $viewInfo.getViewName() TO $permission.GetUser()#end
+#if ($intProtectType == 2)REVOKE $permission.GetRight() ON $viewInfo.getViewName() TO $permission.GetUser()#end
+
+##go
+#end
+go
+#end

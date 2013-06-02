@@ -1,0 +1,38 @@
+<html>
+<head>
+	<title>
+		Login
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="Login">
+	<meta name="keywords" content="Login">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## header
+##------------------------------------------------------------------------------
+<h1>Login: global SQL server login</h1>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Name</th>
+		<th>Default database</th>
+		<th>Language</th>
+		<th>Full name</th>
+	</thead>
+#foreach ( $login in $loginInfo )
+	<tr>
+		<td>$login.getLoginName()</td>
+		<td>$login.getDbName()</td>
+		<td>#if ( $login.getLanguage().length() > 0 )$login.getLanguage()#else&nbsp;#end</td>
+		<td>#if ( $login.getFullName().length() > 0 )$login.getFullName()#else&nbsp;#end</td>
+	</tr>
+#end
+</table>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+	<title>
+		P: $procedureInfo.getProcedureName()
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="$procedureInfo.getProcedureName()">
+	<meta name="keywords" content="$procedureInfo.getProcedureName()">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## procedure name
+##------------------------------------------------------------------------------
+<h1>Procedure: <font color="green">$procedureInfo.getProcedureName()</font></h1>
+##------------------------------------------------------------------------------
+## execution mode
+##------------------------------------------------------------------------------
+<h2>Execution mode</h2>
+$procedureInfo.getProcedureExecMode()
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $procedureInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+<br>
+<h2>Permissions</h2>
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Protection type</th>
+		<th>Right</th>
+		<th>User/Group</th>
+		<th>Option</th>
+	</thead>
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+	<tr>
+		<td>#if ($intProtectType == 0 || $intProtectType == 1)Grant#end#if ($intProtectType == 2)Revoke#end</td>
+		<td>$permission.GetRight()</td>
+		<td>$permission.GetUser()</td>
+		<td>#if ($intProtectType == 0)with grant option#else&nbsp;#end</td>
+	</tr>
+#end
+</table>
+#end
+##------------------------------------------------------------------------------
+## procedure text
+##------------------------------------------------------------------------------
+<code>
+<pre>
+$procedureInfo.getProcedureText().trim()
+</pre>
+</code>
+</body>
+</html>

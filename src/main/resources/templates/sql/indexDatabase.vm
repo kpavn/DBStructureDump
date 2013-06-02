@@ -1,0 +1,51 @@
+IF EXISTS (SELECT 1 FROM master..sysdatabases d WHERE d.name = '$DatabaseDTO.getDbName()')
+	DROP DATABASE $DatabaseDTO.getDbName()
+go
+CREATE DATABASE $DatabaseDTO.getDbName() ON
+#set ( $isFirstString = 0 )
+#foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
+#if ( $databaseDeviceDTO.isDataDevice() )
+	#if ($isFirstString == 0) #else,#end
+$databaseDeviceDTO.getName() = $databaseDeviceDTO.getSizeMb()
+#set ( $isFirstString = 1 )
+#end
+#end
+LOG ON
+#set ( $isFirstString = 0 )
+#foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
+#if ( $databaseDeviceDTO.isLogDevice() )
+	#if ($isFirstString == 0) #else,#end
+$databaseDeviceDTO.getName() = $databaseDeviceDTO.getSizeMb()
+#set ( $isFirstString = 1 )
+#end
+#end
+go
+--------------------------------------------------------------------------------
+-- DbName:        $DatabaseDTO.getDbName()
+-- Size(page):    $DatabaseDTO.getDbSize()
+-- Size(Mb):      $DatabaseDTO.getDbSizeMb()
+-- DbId:          $DatabaseDTO.getDbId()
+-- Owner SuId:    $DatabaseDTO.getSuId()
+-- Owner Name:    $DatabaseDTO.getOwner()
+-- Status:        $DatabaseDTO.getStatus() {$DatabaseDTO.getTextStatus()}
+-- Version:       $DatabaseDTO.getVersion()
+-- LogPtr:        $DatabaseDTO.getLogPtr()
+-- CrDate:        $DatabaseDTO.getCrDate()
+-- DumpTrDate:    $DatabaseDTO.getDumpTrDate()
+-- Status2:       $DatabaseDTO.getStatus2()
+-- AudFlags:      $DatabaseDTO.getAudFlags()
+-- Deftabaud:     $DatabaseDTO.getDeftabaud()
+-- Defvwaud:      $DatabaseDTO.getDefvwaud()
+-- Defpraud:      $DatabaseDTO.getDefpraud()
+-- DefRemoteType: $DatabaseDTO.getDefRemoteType()
+-- DefRemoteLoc:  $DatabaseDTO.getDefRemoteLoc()
+-- Status3:       $DatabaseDTO.getStatus3()
+-- Status4:       $DatabaseDTO.getStatus4()
+--------------------------------------------------------------------------------
+#foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
+-- $databaseDeviceDTO.getName() $databaseDeviceDTO.getPhyname() $databaseDeviceDTO.getSize() $databaseDeviceDTO.getSegmap() $databaseDeviceDTO.getCrDate()
+#end
+--------------------------------------------------------------------------------
+#foreach ( $object in $DbObjectsInfo )
+-- $object.getObjectType() $object.getObjectName(); $object.getCount()
+#end

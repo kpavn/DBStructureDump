@@ -1,0 +1,14 @@
+#foreach ( $login in $loginInfo )
+IF NOT EXISTS(SELECT 1 FROM master..syslogins WHERE name = '$login.getLoginName()')
+BEGIN
+	EXEC sp_addlogin
+		 '$login.getLoginName()'
+		,'$login.getLoginName()123'
+		,'$login.getDbName()'
+		,#if ($login.getLanguage().length() == 0)NULL#else'$login.getLanguage()'#end
+
+		,#if ($login.getFullName().length() == 0)NULL#else'$login.getFullName()'#end
+
+END
+#end
+go

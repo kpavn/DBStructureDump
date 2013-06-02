@@ -1,0 +1,165 @@
+#set ( $strSqlHhml = "sql.html" )
+#set ( $strProHhml = "PRO.html" )
+#set ( $strOutHhml = "out.html" )
+#set ( $strCount   = ".count" )
+<html>
+<head>
+	<title>
+		Database: $DatabaseDTO.getDbName()
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="indexDatabase">
+	<meta name="keywords" content="index">
+</head>
+<body>
+
+<a href="../indexInstance.out.html">Back to the all databases...</a></td>
+
+##------------------------------------------------------------------------------
+## header 1
+##------------------------------------------------------------------------------
+<h1>Database: $DatabaseDTO.getDbName()</h1>
+
+<h2><a href="user.out.html">Database Users</a></h2>
+<h2><a href="group.out.html">Database Groups</a></h2>
+<h2><a href="Udt.out.html">User datatypes</a></h2>
+
+<h2>Devices:</h2>
+
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Data device</th>
+		<th>Size(Mb)</th>
+	</thead>
+#foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
+#if ( $databaseDeviceDTO.isDataDevice() )
+	<tr>
+		<td>$databaseDeviceDTO.getName()</td>
+		<td>$databaseDeviceDTO.getSizeMb()</td>
+	</tr>
+#end
+#end
+	<thead>
+		<th>Log device</th>
+		<th>Size(Mb)</th>
+	</thead>
+#foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
+#if ( !$databaseDeviceDTO.isDataDevice() )
+	<tr>
+		<td>$databaseDeviceDTO.getName()</td>
+		<td>$databaseDeviceDTO.getSizeMb()</td>
+	</tr>
+#end
+#end
+</table>
+
+<h2>Parameters:</h2>
+
+<table cellspacing="1" cellpadding="1" border="1">
+	<tr>
+		<td>DbName</td>
+		<td>$DatabaseDTO.getDbName()</td>
+	</tr>
+		<td>Size(page)</td>
+		<td>$DatabaseDTO.getDbSize()</td>
+	</tr>
+	<tr>
+		<td>Size(Mb)</td>
+		<td>$DatabaseDTO.getDbSizeMb()</td>
+	</tr>
+	<tr>
+		<td>DbId</td>
+		<td>$DatabaseDTO.getDbId()</td>
+	</tr>
+	<tr>
+		<td>Owner SuId</td>
+		<td>$DatabaseDTO.getSuId()</td>
+	</tr>
+	<tr>
+		<td>Owner Name</td>
+		<td>$DatabaseDTO.getOwner()</td>
+	</tr>
+	<tr>
+		<td>Status</td>
+		<td>$DatabaseDTO.getStatus() {$DatabaseDTO.getTextStatus()}</td>
+	</tr>
+	<tr>
+		<td>Version</td>
+		<td>$DatabaseDTO.getVersion()</td>
+	</tr>
+	<tr>
+		<td>LogPtr</td>
+		<td>$DatabaseDTO.getLogPtr()</td>
+	</tr>
+	<tr>
+		<td>CrDate</td>
+		<td>$DatabaseDTO.getCrDate()</td>
+	</tr>
+	<tr>
+		<td>DumpTrDate</td>
+		<td>$DatabaseDTO.getDumpTrDate()</td>
+	</tr>
+	<tr>
+		<td>Status2</td>
+		<td>$DatabaseDTO.getStatus2()</td>
+	</tr>
+	<tr>
+		<td>AudFlags</td>
+		<td>$DatabaseDTO.getAudFlags()</td>
+	</tr>
+	<tr>
+		<td>Deftabaud</td>
+		<td>$DatabaseDTO.getDeftabaud()</td>
+	</tr>
+	<tr>
+		<td>Defvwaud</td>
+		<td>$DatabaseDTO.getDefvwaud()</td>
+	</tr>
+	<tr>
+		<td>Defpraud</td>
+		<td>$DatabaseDTO.getDefpraud()</td>
+	</tr>
+	<tr>
+		<td>DefRemoteType</td>
+		<td>$DatabaseDTO.getDefRemoteType()</td>
+	</tr>
+	<tr>
+		<td>DefRemoteLoc</td>
+		<td>#if ($DatabaseDTO.getDefRemoteLoc().length() > 0)$DatabaseDTO.getDefRemoteLoc()#else&nbsp;#end</td>
+	</tr>
+	<tr>
+		<td>Status3</td>
+		<td>$DatabaseDTO.getStatus3()</td>
+	</tr>
+	<tr>
+		<td>Status4</td>
+		<td>$DatabaseDTO.getStatus4()</td>
+	</tr>
+</table>
+
+##------------------------------------------------------------------------------
+## header 2
+##------------------------------------------------------------------------------
+<h2>Index: all database objects</h2>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th align="center">Type</th>
+		<th align="center">Name</th>
+		<th align="center">Count</th>
+	</thead>
+#foreach ( $object in $DbObjectsInfo )
+	<tr>
+		<td align="left">$object.getObjectType()</td>
+		<td align="left"><a href="$object.getObjectType()/$object.getObjectName().#if ( $object.getObjectType() == "P" )$strProHhml#else$strSqlHhml#end">$object.getObjectName()</a></td>
+		<td align="right">$object.getCount()</td>
+	</tr>
+#end
+</table>
+</body>
+</html>

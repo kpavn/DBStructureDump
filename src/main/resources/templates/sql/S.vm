@@ -1,0 +1,152 @@
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'S' AND o.name = '$tableInfo.getTableName()' AND o.uid = User_id())
+	DROP TABLE $tableInfo.getTableName()
+go
+##------------------------------------------------------------------------------
+## table structure
+##------------------------------------------------------------------------------
+CREATE TABLE $tableInfo.getTableName()
+(
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+	#set ( $isColumnNullable = $column.isColumnNullable() )
+	#if ($velocityCount == 1) #else,#end$column.getColumnName() $column.getColumnType() $column.getColumnDefault()#if ( !$isColumnNullable ) NOT#end NULL
+#end
+)
+##go
+##------------------------------------------------------------------------------
+## table columns rules
+##------------------------------------------------------------------------------
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+#if ( $column.getColumnRule() != "" )
+EXEC sp_bindrule '$column.getColumnRule()', '$tableInfo.getTableName().$column.getColumnName().trim()'
+
+ALTER TABLE '$tableInfo.getTableName() ADD
+	$column.getColumnRule()
+#end
+#end
+##------------------------------------------------------------------------------
+## table lock type
+##------------------------------------------------------------------------------
+#if ( ($tableInfo.getTableLockType() == 'DATAPAGES') || ($tableInfo.getTableLockType() == 'DATAROWS'))
+DECLARE @db_name sysname
+
+SELECT @db_name = db_name()
+
+-- You cannot run ALTER TABLE LOCK if the 'select into/bulkcopy/pllsort' option is off
+EXEC master..sp_dboption @db_name, 'select into/bulkcopy/pllsort', true
+CHECKPOINT
+
+-- DRL locking scheme
+ALTER TABLE $tableInfo.getTableName() LOCK $tableInfo.getTableLockType()
+
+EXEC master..sp_dboption @db_name, 'select into/bulkcopy/pllsort', false
+CHECKPOINT
+##go
+#end
+go
+##------------------------------------------------------------------------------
+## indexes
+##------------------------------------------------------------------------------
+#set ( $indexList = $tableInfo.getIndexList() )
+#set ( $intCount = $indexList.size() )
+#if ( $intCount > 0 )
+#foreach ( $index in $indexList )
+IF NOT EXISTS (SELECT 1
+	FROM
+		sysindexes i
+	WHERE
+		i.id = object_id('$tableInfo.getTableName()')
+		AND i.name = '$index.getIndexName()')
+BEGIN
+#if ( $index.isPrimaryKey() )
+	ALTER TABLE $tableInfo.getTableName() ADD CONSTRAINT $index.getIndexName() PRIMARY KEY#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end
+
+#else
+	CREATE#if ( $index.isUnique() ) UNIQUE#end#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end INDEX $index.getIndexName() ON $tableInfo.getTableName()
+#end
+		(
+#set ( $columnList = $index.getColumnList() )
+#set ( $intCount = $columnList.size() )
+#if ( $intCount >= 1)
+#if ( $intCount > 1)
+#foreach ( $column in $columnList )
+			#if ($velocityCount == 1) #else,#end$column.getColumnName()#if ( $column.isColumnDesc() ) DESC#else ASC#end
+
+#end
+#else
+			$columnList.get(0).getColumnName()#if ( $columnList.get(0).isColumnDesc() ) DESC#else ASC#end
+
+#end
+#end
+		)
+END
+##go
+#end
+go
+#end
+##------------------------------------------------------------------------------
+## foreign keys
+##------------------------------------------------------------------------------
+#set ( $foreignKeyList = $tableInfo.getForeignKeyList() )
+#if ( $foreignKeyList.size() > 0 )
+#foreach ( $foreignKey in $foreignKeyList )
+IF NOT EXISTS (SELECT 1
+	FROM
+		sysreferences r
+	WHERE
+		r.constrid = object_id('$foreignKey.getForeignKeyName()')
+		AND r.tableid = object_id('$tableInfo.getTableName()'))
+BEGIN
+	ALTER TABLE $tableInfo.getTableName()
+		ADD CONSTRAINT $foreignKey.getForeignKeyName() FOREIGN KEY
+		(
+#set ( $columnList = $foreignKey.getColumnList() )
+#set ( $intCount = $columnList.size() )
+#if ( $intCount > 0 )
+#if ( $intCount > 1 )
+#foreach ( $column in $columnList )
+			#if ($velocityCount == 1) #else,#end$column
+#end
+#else
+			$columnList.get(0)
+#end
+#end
+		)
+		REFERENCES $foreignKey.getReferenceTableName()
+		(
+#set ( $columnList = $foreignKey.getReferenceColumnList() )
+#set ( $intCount = $columnList.size() )
+#if ( $intCount > 0 )
+#if ( $intCount > 1 )
+#foreach ( $column in $columnList )
+			#if ($velocityCount == 1) #else,#end$column
+#end
+#else
+			$columnList.get(0)
+#end
+#end
+		)
+END
+##go
+#end
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $tableInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+--------------------------------------------------------------------------------
+-- CW permissions part in file
+--------------------------------------------------------------------------------
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 0)GRANT $permission.GetRight() ON $tableInfo.getTableName() TO $permission.GetUser() WITH GRANT OPTION#end
+#if ($intProtectType == 1)GRANT $permission.GetRight() ON $tableInfo.getTableName() TO $permission.GetUser()#end
+#if ($intProtectType == 2)REVOKE $permission.GetRight() ON $tableInfo.getTableName() TO $permission.GetUser()#end
+
+##go
+#end
+go
+#end

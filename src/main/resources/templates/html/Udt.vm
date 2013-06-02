@@ -1,0 +1,41 @@
+#set ( $strTrue = "True" )
+#set ( $strFalse = "False" )
+<html>
+<head>
+	<title>
+		UDT
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="UDT">
+	<meta name="keywords" content="UDT">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## header
+##------------------------------------------------------------------------------
+<h1>UDT: User defined types</h1>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Name</th>
+		<th>Data type</th>
+		<th>Nullable</th>
+		<th>Default name</th>
+	</thead>
+#foreach ( $udt in $udtInfo )
+#set ( $isNullable = $udt.isNullable() )
+	<tr>
+		<td>$udt.getUDTName()</td>
+		<td>$udt.getUDTType()</td>
+		<td>#if ( $isNullable )$strTrue#else$strFalse#end</td>
+		<td>#if ( $udt.getDefaultName().length() > 0 )$udt.getDefaultName()#else&nbsp;#end</td>
+	</tr>
+#end
+</table>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MakeAllTablesDump>
+	<login
+	 rootDirectory = "C:\\Temp\\.DUMPS"
+	 driver        = "net.sourceforge.jtds.jdbc.Driver"
+	 name          = "..."
+	 password      = "..."
+	 instance      = "..."
+	 server        = "...:5900"
+	 template      = "sql">
+		<instance
+			threads   = "1"
+			logins    = "false"
+			datatypes = "false"
+		/>
+		<db name = "xol_core2">
+			<object
+				type           = "XXX"
+				name           = "\S*"
+				count          = "true"
+				text           = "true">
+
+				<bcp
+					run        = "false"
+					parameters = "-c"
+					sort       = "true"
+				/>
+			</object>
+			
+			<object
+				type           = "U"
+				name           = "ac_account"
+				count          = "true"
+				text           = "true">
+
+				<bcp
+					run        = "false"
+					parameters = "-c"
+					sort       = "true"
+				/>
+			</object>
+		</db>
+		<db name = "xol_trade11">
+			<object
+				type           = "\S*"
+				name           = "\S*"
+				count          = "false"
+				text           = "true">
+
+				<bcp
+					run        = "false"
+					parameters = "-c"
+					sort       = "true"
+				/>
+			</object>
+		</db>
+		<db name = "xol_trans11">
+			<object
+				type           = "P"
+				name           = "\S*"
+				count          = "false"
+				text           = "true">
+
+				<bcp
+					run        = "false"
+					parameters = "-c"
+					sort       = "true"
+				/>
+			</object>
+		</db>
+		<db name = "xol_hist11">
+			<object
+				type           = "\S*"
+				name           = "\S*"
+				count          = "false"
+				text           = "true">
+
+				<bcp
+					run        = "false"
+					parameters = "-c"
+					sort       = "true"
+				/>
+			</object>
+		</db>
+	</login>
+</MakeAllTablesDump>

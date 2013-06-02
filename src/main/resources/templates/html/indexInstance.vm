@@ -1,0 +1,38 @@
+<html>
+<head>
+	<title>
+		indexInstance
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="indexInstance">
+	<meta name="keywords" content="index">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## header
+##------------------------------------------------------------------------------
+<h1>Index: Databases</h1>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Database</th>
+	</thead>
+#foreach ( $object in $InstanceObjectsInfo )
+	<tr>
+		<td><a href="$object.getDbName()/indexDatabase.out.html">$object.getDbName()</a></td>
+	</tr>
+#end
+
+##------------------------------------------------------------------------------
+## server logins
+##------------------------------------------------------------------------------
+<h2><a href="login.out.html">Server logins</a></h2>
+
+</table>
+</body>
+</html>

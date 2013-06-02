@@ -1,0 +1,5 @@
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'R' AND o.name = '$ruleInfo.getRuleName()' AND o.uid = User_id())
+	DROP RULE $ruleInfo.getRuleName()
+go
+$ruleInfo.getRuleText()
+go

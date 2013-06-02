@@ -1,0 +1,5 @@
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'TR' AND o.name = '$triggerInfo.getTriggerName()' AND o.uid = User_id())
+	DROP TRIGGER $triggerInfo.getTriggerName()
+go
+$triggerInfo.getTriggerText()
+go

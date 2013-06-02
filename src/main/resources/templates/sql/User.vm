@@ -1,0 +1,13 @@
+#foreach ( $user in $userInfo )
+IF       EXISTS(SELECT 1 FROM master..syslogins l WHERE l.name = '$user.getLoginName()')
+ AND NOT EXISTS(SELECT 1 FROM sysusers s          WHERE s.name = '$user.getUserName()')
+BEGIN
+	EXEC sp_adduser
+		 '$user.getLoginName()'
+		,'$user.getUserName()'
+#if ( $user.getGroupName().length() > 0 && $user.getGroupName() != 'public' )
+		,'$user.getGroupName()'
+#end
+END
+#end
+go

@@ -1,0 +1,5 @@
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'D' AND o.name = '$defaultInfo.getDefaultName()' AND o.uid = User_id())
+	DROP DEFAULT $defaultInfo.getDefaultName()
+go
+$defaultInfo.getDefaultText()
+go

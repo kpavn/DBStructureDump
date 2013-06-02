@@ -1,0 +1,29 @@
+#set ( $strTrue = "True" )
+#set ( $strFalse = "False" )
+\begin{longtable}[c]{@{} | l | l | l | l | X | @{}}
+
+	\hline
+
+	Column name &
+	Data type &
+	Nullable &
+	Default value &
+	Rule
+	\\
+
+	\hline
+
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+#set ( $isColumnNullable = $column.isColumnNullable() )
+	$column.StrToTeX($column.getColumnName().trim()) &
+	$column.StrToTeX($column.getColumnType().trim()) &
+	#if ( $isColumnNullable )$strTrue#else$strFalse#end &
+	#if ( $column.getColumnDefault().trim() != "")$column.StrToTeX($column.getColumnDefault().trim())#end&
+	#if ( $column.getColumnRule() != "" )$column.StrToTeX($column.getColumnRule())#end
+\\
+#end
+
+	\hline
+
+\end{longtable}

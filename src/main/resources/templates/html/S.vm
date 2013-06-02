@@ -1,0 +1,137 @@
+#set ( $strTrue = "True" )
+#set ( $strFalse = "False" )
+#set ( $strSqlHhml = ".sql.html" )
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+	<title>
+		S: $tableInfo.getTableName()
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="$tableInfo.getTableName()">
+	<meta name="keywords" content="$tableInfo.getTableName()">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## table structure
+##------------------------------------------------------------------------------
+<h1>System Table: <font color="green">$tableInfo.getTableName()</font></h1>
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Column name</th>
+		<th>Data type</th>
+		<th>Nullable</th>
+		<th>Default value</th>
+		<th>Rule</th>
+	</thead>
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+#set ( $isColumnNullable = $column.isColumnNullable() )
+	<tr>
+		<td>$column.getColumnName().trim()</td>
+		<td>$column.getColumnType().trim()</td>
+		<td>#if ( $isColumnNullable )$strTrue#else$strFalse#end</td>
+		<td>#if ( $column.getColumnDefault().trim() != "")$column.getColumnDefault().trim()#else&nbsp;#end</td>
+		<td>#if ( $column.getColumnRule() != "" )$column.getColumnRule()#else&nbsp;#end</td>
+	</tr>
+#end
+</table>
+##------------------------------------------------------------------------------
+## table lock type
+##------------------------------------------------------------------------------
+<br>
+<h2>Lock type</h2>
+$tableInfo.getTableLockType()
+##------------------------------------------------------------------------------
+## indexes
+##------------------------------------------------------------------------------
+#set ( $indexList = $tableInfo.getIndexList() )
+#set ( $intCount = $indexList.size() )
+#if ( $intCount > 0 )
+<br>
+<h2>Index list</h2>
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Index name</th>
+		<th>PK</th>
+		<th>Unique</th>
+		<th>Clustered</th>
+		<th>Column list</th>
+	</thead>
+#foreach ( $index in $indexList )
+	<tr>
+		<td>$index.getIndexName().trim()</td>
+		<td>#if ( $index.isPrimaryKey() )$strTrue#else$strFalse#end</td>
+		<td>#if ( $index.isUnique() )$strTrue#else$strFalse#end</td>
+		<td>#if ( $index.isClustered() )$strTrue#else$strFalse#end</td>
+		<td>#set ( $columnList = $index.getColumnList() )
+#foreach ( $column in $columnList )
+#if ($velocityCount > 1), #end$column.getColumnName()#if ( $column.isColumnDesc() ) DESC#else ASC#end
+#end
+</td>
+	</tr>
+#end
+</table>
+#end
+##------------------------------------------------------------------------------
+## foreign key(s)
+##------------------------------------------------------------------------------
+#set ( $foreignKeyList = $tableInfo.getForeignKeyList() )
+#set ( $intCount = $foreignKeyList.size() )
+#if ( $intCount > 0 )
+<br>
+<h2>Foreign key list</h2>
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Constraint name</th>
+		<th>Column list</th>
+		<th>Reference table name</th>
+		<th>Column list</th>
+	</thead>
+#foreach ( $fk in $foreignKeyList )
+	<tr>
+		<td>$fk.getForeignKeyName()</td>
+		<td>#set ( $columnList = $fk.getColumnList() )
+#foreach ( $column in $columnList )
+#set ( $strReferenceRelativePath = $fk.getReferenceRelativePath() )
+#if ($velocityCount > 1), #end$column#end
+</td>
+		<td><a href="$strReferenceRelativePath$strSqlHhml">$fk.getReferenceTableName()</a></td>
+		<td>#set ( $columnList = $fk.getReferenceColumnList() )
+#foreach ( $column in $columnList )
+#if ($velocityCount > 1), #end$column#end
+</td>
+	</tr>
+#end
+</table>
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $tableInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+<br>
+<h2>Permissions</h2>
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Protection type</th>
+		<th>Right</th>
+		<th>User/Group</th>
+		<th>Option</th>
+	</thead>
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+	<tr>
+		<td>#if ($intProtectType == 0 || $intProtectType == 1)Grant#end#if ($intProtectType == 2)Revoke#end</td>
+		<td>$permission.GetRight()</td>
+		<td>$permission.GetUser()</td>
+		<td>#if ($intProtectType == 0)with grant option#else&nbsp;#end</td>
+	</tr>
+#end
+</table>
+#end
+</body>
+</html>

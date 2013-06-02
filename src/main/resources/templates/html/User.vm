@@ -1,0 +1,36 @@
+<html>
+<head>
+	<title>
+		User
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="UDT">
+	<meta name="keywords" content="UDT">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## header
+##------------------------------------------------------------------------------
+<h1>User: local database users</h1>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Name</th>
+		<th>Login</th>
+		<th>Group</th>
+	</thead>
+#foreach ( $user in $userInfo )
+	<tr>
+		<td>$user.getUserName()</td>
+		<td>$user.getLoginName()</td>
+		<td>#if ( $user.getGroupName().length() > 0 && $user.getGroupName() != 'public' )$user.getGroupName()#else&nbsp;#end</td>
+	</tr>
+#end
+</table>
+</body>
+</html>

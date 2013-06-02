@@ -1,0 +1,32 @@
+<html>
+<head>
+	<title>
+		Group
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="Group">
+	<meta name="keywords" content="Group">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## header
+##------------------------------------------------------------------------------
+<h1>Group: local database groups</h1>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Name</th>
+	</thead>
+#foreach ( $group in $groupInfo )
+	<tr>
+		<td>$group.getGroupName()</td>
+	</tr>
+#end
+</table>
+</body>
+</html>
