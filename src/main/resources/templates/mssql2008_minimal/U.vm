@@ -1,0 +1,82 @@
+Database:
+	$tableInfo.getDbName()
+Table:
+	$tableInfo.getObjectName()
+Table schema:
+	$tableInfo.getObjectSchema()
+Table column(s):
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+	#set ( $isColumnNullable = $column.isColumnNullable() )
+	${column.getColumnName()}${column.getColumnNameSpace()} [${column.getColumnType()}]${column.getColumnTypeExt()}${column.getColumnTypeSpace()}#if ( ${column.isColumnidentity()} ) IDENTITY(1, 1)#end${column.getColumnDefault()}${column.getColumnDefaultSpace()}#if ( !$isColumnNullable ) NOT#end NULL#if ( ${column.isColumnConstraint()} ) $column.getColumnConstraint().getRuleText()#end
+
+#end
+##------------------------------------------------------------------------------
+## table columns rules
+##------------------------------------------------------------------------------
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+#if ( $column.isColumnRule() )
+EXEC sp_bindrule '$column.getColumnRule().getRuleName()', '$tableInfo.getObjectName().$column.getColumnName().trim()'
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## constraints for table
+##------------------------------------------------------------------------------
+#set ( $constraintList = $tableInfo.getConstraintList() )
+#set ( $intCount = $constraintList.size() )
+#if ( $intCount > 0 )
+#foreach ( $constraint in $constraintList )
+ALTER TABLE [$tableInfo.getObjectSchema()].[$tableInfo.getObjectName()] ADD
+	$constraint.getRuleText()
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## indexes
+##------------------------------------------------------------------------------
+#set ( $indexList = $tableInfo.getIndexList() )
+#set ( $intCount = $indexList.size() )
+#if ( $intCount > 0 )
+
+Indexes (with columns):
+#foreach ( $index in $indexList )
+#if ( $index.isPrimaryKey() )
+	[$index.getIndexName()] PRIMARY KEY#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end
+
+#else
+	#if ( $index.isUnique() ) UNIQUE#end#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end INDEX [$index.getIndexName()]
+#end
+#set ( $columnList = $index.getColumnList() )
+#set ( $intCount = $columnList.size() )
+#foreach ( $column in $columnList )
+		[$column.getColumnName()]
+#end
+#end
+#end
+##------------------------------------------------------------------------------
+## foreign keys
+##------------------------------------------------------------------------------
+#set ( $foreignKeyList = $tableInfo.getForeignKeyList() )
+#if ( $foreignKeyList.size() > 0 )
+
+Foreign Key(s):
+#foreach ( $foreignKey in $foreignKeyList )
+	$foreignKey.getForeignKeyName()
+		$foreignKey.getReferenceTableName()
+#end
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $tableInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 204)GRANT $permission.GetRight() ON [$tableInfo.getObjectSchema()].[$tableInfo.getObjectName()] TO [$permission.GetUser()] WITH GRANT OPTION#end
+#if ($intProtectType == 205)GRANT $permission.GetRight() ON [$tableInfo.getObjectSchema()].[$tableInfo.getObjectName()] TO [$permission.GetUser()]#end
+#if ($intProtectType == 206)REVOKE $permission.GetRight() ON [$tableInfo.getObjectSchema()].[$tableInfo.getObjectName()] TO [$permission.GetUser()]#end
+#end
+#end
+--------------------------------------------------------------------------------

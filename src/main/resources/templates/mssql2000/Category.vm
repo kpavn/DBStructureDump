@@ -1,0 +1,24 @@
+USE [msdb]
+go
+DECLARE
+	@intReturnCode INTEGER
+
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[msdb].[dbo].[sysjobs] j
+		INNER JOIN [msdb].[dbo].[syscategories] c ON
+			c.[category_id] = j.[category_id]
+	WHERE
+		c.[name] = N'${categoryInfo.getObjectName()}'
+	GROUP BY
+		c.[category_id]
+	)
+BEGIN
+	EXEC @intReturnCode = [msdb].[dbo].[sp_add_category]
+		 @class = N'JOB'
+		,@type  = N'LOCAL'
+		,@name  = N'${categoryInfo.getObjectName()}'
+END
+go

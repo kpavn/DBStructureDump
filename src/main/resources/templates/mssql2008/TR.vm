@@ -1,0 +1,20 @@
+USE [${triggerInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[sys].[objects] o
+		INNER JOIN [sys].[schemas] s ON
+			s.[schema_id] = o.[schema_id]
+			AND s.[name] = N'${triggerInfo.getObjectSchema()}'
+	WHERE
+		o.[type] = N'${triggerInfo.getObjectType()}'
+		AND o.[name] = N'${triggerInfo.getObjectName()}'
+	)
+BEGIN
+	DROP TRIGGER [${triggerInfo.getObjectSchema()}].[${triggerInfo.getObjectName()}]
+END
+go
+${triggerInfo.getTriggerText()}
+go

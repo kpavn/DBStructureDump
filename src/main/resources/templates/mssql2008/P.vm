@@ -1,0 +1,44 @@
+USE [${procedureInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[sys].[objects] o
+		INNER JOIN [sys].[schemas] s ON
+			s.[schema_id] = o.[schema_id]
+			AND s.[name] = '${procedureInfo.getObjectSchema()}'
+	WHERE
+		o.[type] = N'${procedureInfo.getObjectType()}'
+		AND o.[name] = N'${procedureInfo.getObjectName()}'
+	)
+	BEGIN
+		DROP PROCEDURE [${procedureInfo.getObjectSchema()}].[${procedureInfo.getObjectName()}]
+	END
+go
+$procedureInfo.getProcedureText()
+go
+##------------------------------------------------------------------------------
+## execution mode
+##------------------------------------------------------------------------------
+#if ( $procedureInfo.getProcedureExecMode() != 'unchained' )
+--------------------------------------------------------------------------------
+-- Procedure transaction execution mode
+--------------------------------------------------------------------------------
+EXEC sp_procxmode '${procedureInfo.getProcedureName()}', '${procedureInfo.getProcedureExecMode()}'
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $procedureInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 204)GRANT ${permission.GetRight()} ON [${procedureInfo.getObjectSchema()}].[${procedureInfo.getObjectName()}] TO [${permission.GetUser()}] WITH GRANT OPTION#end
+#if ($intProtectType == 205)GRANT ${permission.GetRight()} ON [${procedureInfo.getObjectSchema()}].[${procedureInfo.getObjectName()}] TO [${permission.GetUser()}]#end
+#if ($intProtectType == 206)REVOKE ${permission.GetRight()} ON [${procedureInfo.getObjectSchema()}].[${procedureInfo.getObjectName()}] TO [${permission.GetUser()}]#end
+
+go
+#end
+#end

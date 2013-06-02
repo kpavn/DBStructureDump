@@ -1,0 +1,34 @@
+USE [${viewInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'$viewInfo.getObjectOwner()'
+	WHERE
+		o.[type] = N'${viewInfo.getObjectType()}'
+		AND o.[name] = N'${viewInfo.getObjectName()}'
+	)
+BEGIN
+	DROP VIEW [${viewInfo.getObjectOwner()}].[${viewInfo.getObjectName()}]
+END
+go
+${viewInfo.getViewText()}
+go
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $viewInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 204)GRANT $permission.GetRight() ON [${viewInfo.getObjectOwner()}].[${viewInfo.getObjectName()}] TO [$permission.GetUser()] WITH GRANT OPTION#end
+#if ($intProtectType == 205)GRANT $permission.GetRight() ON [${viewInfo.getObjectOwner()}].[${viewInfo.getObjectName()}] TO [$permission.GetUser()]#end
+#if ($intProtectType == 206)REVOKE $permission.GetRight() ON [${viewInfo.getObjectOwner()}].[${viewInfo.getObjectName()}] TO [$permission.GetUser()]#end
+
+go
+#end
+#end

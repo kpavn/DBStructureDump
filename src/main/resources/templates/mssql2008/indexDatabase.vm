@@ -1,25 +1,48 @@
-IF EXISTS (SELECT 1 FROM master..sysdatabases d WHERE d.name = '$DatabaseDTO.getDbName()')
-	DROP DATABASE $DatabaseDTO.getDbName()
+USE [master]
 go
-CREATE DATABASE $DatabaseDTO.getDbName() ON
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[master].[sys].[databases] d
+	WHERE
+		d.[name] = N'$DatabaseDTO.getDbName()'
+	)
+BEGIN
+	DROP DATABASE [$DatabaseDTO.getDbName()]
+END
+go
+CREATE DATABASE [$DatabaseDTO.getDbName()] ON
+(
 #set ( $isFirstString = 0 )
 #foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
 #if ( $databaseDeviceDTO.isDataDevice() )
 	#if ($isFirstString == 0) #else,#end
-$databaseDeviceDTO.getName() = $databaseDeviceDTO.getSizeMb()
+NAME     = N'$databaseDeviceDTO.getName()'
+	,FILENAME = N'$databaseDeviceDTO.getPhyname()'
+	,SIZE     = $databaseDeviceDTO.getSizeKb()KB
 #set ( $isFirstString = 1 )
 #end
 #end
+)
 LOG ON
+(
 #set ( $isFirstString = 0 )
 #foreach ( $databaseDeviceDTO in $DatabaseDTO.getListDbDevice() )
 #if ( $databaseDeviceDTO.isLogDevice() )
 	#if ($isFirstString == 0) #else,#end
-$databaseDeviceDTO.getName() = $databaseDeviceDTO.getSizeMb()
+NAME     = N'$databaseDeviceDTO.getName()'
+	,FILENAME = N'$databaseDeviceDTO.getPhyname()'
+	,SIZE     = $databaseDeviceDTO.getSizeKb()KB
 #set ( $isFirstString = 1 )
 #end
 #end
+)
 go
+#if ( ${DatabaseDTO.getSnapshotIsolationState()} == 1 )ALTER DATABASE [$DatabaseDTO.getDbName()] SET
+	ALLOW_SNAPSHOT_ISOLATION ON
+go
+#end
 --------------------------------------------------------------------------------
 -- DbName:        $DatabaseDTO.getDbName()
 -- Size(page):    $DatabaseDTO.getDbSize()

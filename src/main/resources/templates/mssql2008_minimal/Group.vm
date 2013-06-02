@@ -1,0 +1,7 @@
+#foreach ( $group in $groupInfo )
+IF NOT EXISTS(SELECT 1 FROM sysusers s WHERE s.name = '$group.getGroupName()')
+BEGIN
+	EXEC sp_addgroup '$group.getGroupName()'
+END
+#end
+go

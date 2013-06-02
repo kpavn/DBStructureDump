@@ -1,0 +1,24 @@
+USE [master]
+go
+#foreach ( $login in $loginInfo )
+IF NOT EXISTS(SELECT 1 FROM master.sys.syslogins l WHERE l.name = '$login.getLoginName()')
+BEGIN
+#if ($login.getIsNtName() == 0)
+	CREATE LOGIN [$login.getLoginName()] WITH
+		 PASSWORD         = '?'
+		,SID              = $login.getSID()
+		,DEFAULT_DATABASE = '$login.getDbName()'
+		,DEFAULT_LANGUAGE = #if ($login.getLanguage().length() == 0)NULL
+#else'$login.getLanguage()'
+#end
+		,CHECK_POLICY     = OFF
+		,CHECK_EXPIRATION = OFF
+#else
+	CREATE LOGIN [$login.getLoginName()] FROM WINDOWS WITH
+		 DEFAULT_DATABASE = '$login.getDbName()'
+		,DEFAULT_LANGUAGE = #if ($login.getLanguage().length() == 0)NULL#else'$login.getLanguage()'#end
+#end
+END
+go
+#end
+

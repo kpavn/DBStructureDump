@@ -1,0 +1,28 @@
+#set ( $strNoNull = 'nonull' )
+#foreach ( $udt in $udtInfo )
+#if ( $udt.getDefaultName().length() > 0 )
+$udt.getDefaultText()
+go
+#end
+IF NOT EXISTS(
+	SELECT 1
+	FROM
+		systypes
+	WHERE
+		name = '$udt.getUDTName()'
+	)
+BEGIN
+	EXEC sp_addtype
+		 $udt.getUDTName()
+		,'$udt.getUDTType()'
+		,#if ( $udt.isNullable() )null#else${strNoNull}#end
+
+#if ( $udt.getDefaultName().length() > 0 )
+	EXEC sp_bindefault
+		 $udt.getDefaultName()
+		,$udt.getUDTName()
+#end
+
+END
+go
+#end

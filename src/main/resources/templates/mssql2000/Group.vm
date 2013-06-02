@@ -1,0 +1,39 @@
+USE [${groupInfo.getDbName()}]
+go
+IF NOT EXISTS(
+	SELECT
+		1
+	FROM
+		[dbo].[sysmembers] m
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = m.[groupuid]
+	WHERE
+		u.[name] = N'${groupInfo.getObjectName()}'
+	GROUP BY
+		m.[groupuid]
+	)
+BEGIN
+	EXEC [dbo].[sp_addgroup] N'${groupInfo.getObjectName()}'
+END
+go
+#set ( $userList = ${groupInfo.getUserList()} )
+#foreach ( $userDTO in $userList )
+EXEC [dbo].[sp_addrolemember]
+	 @rolename   = N'${groupInfo.getObjectName()}'
+	,@membername = N'${userDTO.getObjectName()}'
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = ${groupInfo.getPermissionList()} )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permissionDTO in $permissionList )
+#set ( $intProtectType = $permissionDTO.GetProtectType() )
+#if (${intProtectType} == 204)GRANT ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectOwner()}].[${permissionDTO.getObjectName()}] TO [${groupInfo.getObjectName()}] WITH GRANT OPTION#end
+#if (${intProtectType} == 205)GRANT ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectOwner()}].[${permissionDTO.getObjectName()}] TO [${groupInfo.getObjectName()}]#end
+#if (${intProtectType} == 206)REVOKE ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectOwner()}].[${permissionDTO.getObjectName()}] TO [${groupInfo.getObjectName()}]#end
+
+go
+#end
+#end

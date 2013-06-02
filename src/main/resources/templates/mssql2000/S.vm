@@ -1,0 +1,184 @@
+USE [${tableInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${tableInfo.getObjectOwner()}'
+	WHERE
+		o.[type] = N'${tableInfo.getObjectType()}'
+		AND o.[name] = N'${tableInfo.getObjectName()}'
+	)
+BEGIN
+	DROP TABLE [${tableInfo.getObjectOwner()}].[${tableInfo.getObjectName()}]
+END
+go
+##------------------------------------------------------------------------------
+## table structure
+##------------------------------------------------------------------------------
+CREATE TABLE [${tableInfo.getObjectOwner()}].[${tableInfo.getObjectName()}]
+(
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+	#set ( $isColumnNullable = $column.isColumnNullable() )
+	#if ($velocityCount == 1) #else,#end[${column.getColumnName()}]${column.getColumnNameSpace()} [${column.getColumnType()}]${column.getColumnTypeExt()}${column.getColumnTypeSpace()}#if ( ${column.isColumnidentity()} ) IDENTITY(1, 1)#end#if ( !$isColumnNullable ) NOT#end NULL#if ( ${column.isColumnConstraint()} ) $column.getColumnConstraint().getRuleText()#end
+
+#end
+)
+go
+##------------------------------------------------------------------------------
+## table columns rules
+##------------------------------------------------------------------------------
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+#if ( $column.isColumnRule() )
+EXEC sp_bindrule '$column.getColumnRule().getRuleName()', '$tableInfo.getObjectName().$column.getColumnName().trim()'
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## table columns defaults
+##------------------------------------------------------------------------------
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+#if ( ${column.getColumnDefault()} )
+ALTER TABLE [${tableInfo.getObjectOwner()}].[${tableInfo.getObjectName()}] ADD DEFAULT
+	${column.getColumnDefault()} FOR [${column.getColumnName()}]
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## constraints for table
+##------------------------------------------------------------------------------
+#set ( $constraintList = $tableInfo.getConstraintList() )
+#set ( $intCount = $constraintList.size() )
+#if ( $intCount > 0 )
+#foreach ( $constraint in $constraintList )
+ALTER TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] ADD
+	$constraint.getRuleText()
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## indexes
+##------------------------------------------------------------------------------
+#set ( $indexList = ${tableInfo.getIndexList()} )
+#set ( $intCount = ${indexList.size()} )
+#if ( $intCount > 0 )
+#foreach ( $index in $indexList )
+IF NOT EXISTS (
+	SELECT 
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${tableInfo.getObjectOwner()}'
+		INNER JOIN [dbo].[sysindexes] i ON
+			i.[id] = o.[id]
+	WHERE 
+		o.[type] = N'${tableInfo.getObjectType()}'
+		AND o.[name] = N'${tableInfo.getObjectName()}'
+		AND i.[name] = N'${index.getIndexName()}'
+	)
+BEGIN
+#if ( $index.isPrimaryKey() )
+	ALTER TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] 
+		ADD CONSTRAINT [$index.getIndexName()] PRIMARY KEY#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end
+
+#else
+	CREATE#if ( $index.isUnique() ) UNIQUE#end#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end INDEX [$index.getIndexName()] ON [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()]
+#end
+		(
+#set ( $columnList = $index.getColumnList() )
+#set ( $intCount = $columnList.size() )
+#if ( $intCount >= 1)
+#if ( $intCount > 1)
+#foreach ( $column in $columnList )
+			#if ($velocityCount == 1) #else,#end[$column.getColumnName()]#if ( $column.isColumnDesc() ) DESC#else ASC#end
+
+#end
+#else
+			[$columnList.get(0).getColumnName()]#if ( $columnList.get(0).isColumnDesc() ) DESC#else ASC#end
+
+#end
+#end
+		)
+END
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## foreign keys
+##------------------------------------------------------------------------------
+#set ( $foreignKeyList = $tableInfo.getForeignKeyList() )
+#if ( $foreignKeyList.size() > 0 )
+#foreach ( $foreignKey in $foreignKeyList )
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${tableInfo.getObjectOwner()}'
+		INNER JOIN [dbo].[sysconstraints] c ON
+			c.[id] = o.[id]
+		INNER JOIN [dbo].[sysobjects] o_fk ON
+			o_fk.[id] = c.[constid]
+	WHERE
+		o.[type] = N'${tableInfo.getObjectType()}'
+		AND o.[name] = N'${tableInfo.getObjectName()}'
+		AND o_fk.[name] = N'${foreignKey.getForeignKeyName()}'
+)
+BEGIN
+	ALTER TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()]
+		ADD CONSTRAINT [${foreignKey.getForeignKeyName()}] FOREIGN KEY
+		(
+#set ( $columnList = $foreignKey.getColumnList() )
+#set ( $intCount = $columnList.size() )
+#if ( $intCount > 0 )
+#if ( $intCount > 1 )
+#foreach ( $column in $columnList )
+			#if ($velocityCount == 1) #else,#end[$column]
+#end
+#else
+			[$columnList.get(0)]
+#end
+#end
+		)
+		REFERENCES [${foreignKey.getReferenceObjectDTO().getObjectOwner()}].[${foreignKey.getReferenceObjectDTO().getObjectName()}]
+		(
+#set ( $columnList = $foreignKey.getReferenceColumnList() )
+#set ( $intCount = $columnList.size() )
+#if ( $intCount > 0 )
+#if ( $intCount > 1 )
+#foreach ( $column in $columnList )
+			#if ($velocityCount == 1) #else,#end[$column]
+#end
+#else
+			[$columnList.get(0)]
+#end
+#end
+		)
+END
+go
+#end
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $tableInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 204)GRANT $permission.GetRight() ON [${tableInfo.getObjectOwner()}].[${tableInfo.getObjectName()}] TO [$permission.GetUser()] WITH GRANT OPTION#end
+#if ($intProtectType == 205)GRANT $permission.GetRight() ON [${tableInfo.getObjectOwner()}].[${tableInfo.getObjectName()}] TO [$permission.GetUser()]#end
+#if ($intProtectType == 206)REVOKE $permission.GetRight() ON [${tableInfo.getObjectOwner()}].[${tableInfo.getObjectName()}] TO [$permission.GetUser()]#end
+
+go
+#end
+#end

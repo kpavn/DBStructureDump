@@ -1,0 +1,16 @@
+DROP TABLE ${tableInfo.getObjectSchema()}.${tableInfo.getObjectName()}
+;
+##------------------------------------------------------------------------------
+## table structure
+##------------------------------------------------------------------------------
+CREATE TABLE ${tableInfo.getObjectSchema()}.${tableInfo.getObjectName()}
+(
+#set ( $columnList = $tableInfo.getColumnList() )
+#foreach ( $column in $columnList )
+	#set ( $isColumnNullable = $column.isColumnNullable() )
+	#if ($velocityCount == 1) #else,#end${column.getColumnName()}${column.getColumnNameSpace()} ${column.getColumnType()}${column.getColumnTypeExt()}${column.getColumnTypeSpace()}#if ( ${column.isColumnidentity()} ) IDENTITY(1, 1)#end#if ( !$isColumnNullable ) NOT#end NULL#if ( ${column.isColumnConstraint()} ) $column.getColumnConstraint().getRuleText()#end
+
+#end
+)
+TABLESPACE ${tableInfo.getObjectSchema()}
+;

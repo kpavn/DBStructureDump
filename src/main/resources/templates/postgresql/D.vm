@@ -1,0 +1,21 @@
+USE [${defaultInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[sys].[objects] o
+		INNER JOIN [sys].[schemas] s ON
+			s.[schema_id] = o.[schema_id]
+			AND s.[name] = N'${defaultInfo.getObjectSchema()}'
+	WHERE
+		o.[type] = N'${defaultInfo.getObjectType()}'
+		AND o.[name] = N'${defaultInfo.getObjectName()}'
+	)
+BEGIN
+	DROP DEFAULT [${defaultInfo.getObjectSchema()}].[${defaultInfo.getObjectName()}]
+END
+go
+CREATE DEFAULT [${defaultInfo.getObjectSchema()}].[$defaultInfo.getObjectName()] AS
+	${defaultInfo.getDefaultText()}
+go

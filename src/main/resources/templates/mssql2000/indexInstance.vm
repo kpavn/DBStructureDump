@@ -1,0 +1,6 @@
+--------------------------------------------------------------------------------
+-- Databases:
+--------------------------------------------------------------------------------
+#foreach ( $object in $InstanceObjectsInfo )
+[${object.getDbName()}]${object.getDbNameSpace()} $number.format('#,##0', ${object.getDbSize()}) $number.format("###,###,###,##0", ${object.getDbDataSize()}) $number.format("###,###,###,##0", ${object.getDbLogSize()})
+#end

@@ -1,0 +1,44 @@
+USE [${userInfo.getDbName()}]
+go
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysusers] u
+	WHERE
+		u.[islogin] = 1
+		AND u.[name] = N'${userInfo.getObjectName()}'
+	)
+BEGIN
+#if ( ${userInfo.getLoginName()} )
+	EXEC [dbo].[sp_grantdbaccess]
+		 @loginame   = N'${userInfo.getLoginName()}'
+		,@name_in_db = N'${userInfo.getObjectName()}'
+#else
+	EXEC [dbo].[sp_grantdbaccess]
+		 @loginame   = NULL
+		,@name_in_db = N'${userInfo.getObjectName()}'
+#end
+END
+go
+#set ( $groupList = ${userInfo.getGroupList()} )
+#foreach ( $groupDTO in $groupList )
+EXEC [dbo].[sp_addrolemember]
+	 @rolename   = N'${groupDTO.getObjectName()}'
+	,@membername = N'${userInfo.getObjectName()}'
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = ${userInfo.getPermissionList()} )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permissionDTO in $permissionList )
+#set ( $intProtectType = $permissionDTO.GetProtectType() )
+#if (${intProtectType} == 204)GRANT ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectOwner()}].[${permissionDTO.getObjectName()}] TO [${userInfo.getObjectName()}] WITH GRANT OPTION#end
+#if (${intProtectType} == 205)GRANT ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectOwner()}].[${permissionDTO.getObjectName()}] TO [${userInfo.getObjectName()}]#end
+#if (${intProtectType} == 206)REVOKE ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectOwner()}].[${permissionDTO.getObjectName()}] TO [${userInfo.getObjectName()}]#end
+
+go
+#end
+#end

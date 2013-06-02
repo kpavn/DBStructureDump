@@ -1,0 +1,4 @@
+Databases:
+#foreach ( $object in $InstanceObjectsInfo )
+	[${object.getDbName()}]${object.getDbNameSpace()} [${object.getDbSizeMb()} MB]
+#end

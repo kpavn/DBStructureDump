@@ -1,0 +1,21 @@
+#set ( $strNoNull = 'NOT NULL' )
+USE [${udtInfo.getDbName()}]
+go
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[sys].[types] t
+		INNER JOIN [sys].[schemas] s ON
+			s.[schema_id] = t.[schema_id]
+			AND s.[name] = N'${udtInfo.getObjectSchema()}'
+	WHERE
+		t.[is_user_defined] = 1
+		AND t.[name] = N'${udtInfo.getObjectName()}'
+	)
+BEGIN
+	CREATE TYPE [${udtInfo.getObjectSchema()}].[${udtInfo.getObjectName()}] FROM
+		'${udtInfo.getUDTType()}' #if ( $udtInfo.isNullable() )NULL#else${strNoNull}#end
+
+END
+go

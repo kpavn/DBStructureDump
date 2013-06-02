@@ -1,0 +1,20 @@
+USE [${triggerInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${triggerInfo.getObjectOwner()}'
+	WHERE
+		o.[type] = N'${triggerInfo.getObjectType()}'
+		AND o.[name] = N'${triggerInfo.getObjectName()}'
+	)
+BEGIN
+	DROP TRIGGER [${triggerInfo.getObjectOwner()}].[${triggerInfo.getObjectName()}]
+END
+go
+${triggerInfo.getTriggerText()}
+go

@@ -1,0 +1,3 @@
+#foreach ( $object in $DbObjectsInfo )
+$object.getDb() $object.getObjectType() $object.getObjectName()
+#end

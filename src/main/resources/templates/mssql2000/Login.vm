@@ -1,0 +1,34 @@
+USE [master]
+go
+IF NOT EXISTS(
+	SELECT
+		1
+	FROM
+		[master].[dbo].[syslogins] l
+	WHERE
+		l.[name] = N'$loginInfo.getObjectName()'
+)
+BEGIN
+#if ($loginInfo.getIsNtName() == 0)
+	EXEC [master].[dbo].[sp_addlogin]
+		 @loginame = N'${loginInfo.getObjectName()}'
+		,@passwd   = N'?'
+		,@sid      = ${loginInfo.getSID()}
+#else
+	EXEC [master].[dbo].[sp_grantlogin]
+		@loginame = N'${loginInfo.getObjectName()}'
+#end
+END
+go
+#set ( $listLoginRole = ${loginInfo.getListRole()} )
+#foreach ( $loginRole in $listLoginRole )
+EXEC [master].[dbo].[sp_addsrvrolemember]
+	 @loginame = N'${loginInfo.getObjectName()}'
+	,@rolename = N'${loginRole}'
+go
+#end
+#if (${loginInfo.getIsDenyLogin()} == 1)
+EXEC [master].[dbo].[sp_denylogin]
+	@loginame = N'${loginInfo.getObjectName()}'
+go
+#end

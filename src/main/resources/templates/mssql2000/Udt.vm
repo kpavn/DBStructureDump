@@ -1,0 +1,22 @@
+#set ( $strNoNull = 'NOT NULL' )
+USE [${udtInfo.getDbName()}]
+go
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[systypes] t
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = t.[uid]
+			AND u.[name] = N'${udtInfo.getObjectOwner()}'
+	WHERE
+		t.[name] = N'${udtInfo.getObjectName()}'
+	)
+BEGIN
+	EXEC [dbo].[sp_addtype]
+		 @typename = N'${udtInfo.getObjectName()}'
+		,@phystype = N'${udtInfo.getUDTType()}'
+		,@nulltype = N'#if ( $udtInfo.isNullable() )NULL#else${strNoNull}#end'
+		,@owner    = N'${udtInfo.getObjectOwner()}'
+END
+go

@@ -5,20 +5,20 @@
 <html>
 <head>
 	<title>
-		S: $tableInfo.getTableName()
+		S: $tableInfo.getObjectName()
 	</title>
 
 	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
 
 	<meta name="author" content="MakeAllTablesDump">
-	<meta name="description" content="$tableInfo.getTableName()">
-	<meta name="keywords" content="$tableInfo.getTableName()">
+	<meta name="description" content="$tableInfo.getObjectName()">
+	<meta name="keywords" content="$tableInfo.getObjectName()">
 </head>
 <body>
 ##------------------------------------------------------------------------------
 ## table structure
 ##------------------------------------------------------------------------------
-<h1>System Table: <font color="green">$tableInfo.getTableName()</font></h1>
+<h1>System Table: <font color="green">$tableInfo.getObjectName()</font></h1>
 <table cellspacing="1" cellpadding="1" border="1">
 	<thead>
 		<th>Column name</th>
@@ -43,8 +43,6 @@
 ## table lock type
 ##------------------------------------------------------------------------------
 <br>
-<h2>Lock type</h2>
-$tableInfo.getTableLockType()
 ##------------------------------------------------------------------------------
 ## indexes
 ##------------------------------------------------------------------------------

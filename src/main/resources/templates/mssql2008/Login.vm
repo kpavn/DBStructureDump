@@ -1,0 +1,41 @@
+USE [master]
+go
+IF NOT EXISTS(
+	SELECT
+		1
+	FROM
+		[master].[sys].[syslogins] l
+	WHERE
+		l.[name] = N'$loginInfo.getObjectName()'
+)
+BEGIN
+#if ($loginInfo.getIsNtName() == 0)
+	CREATE LOGIN [$loginInfo.getObjectName()] WITH
+		 PASSWORD         = N'?'
+		,SID              = $loginInfo.getSID()
+		,DEFAULT_DATABASE = N'$loginInfo.getDefaultDbName()'
+		,DEFAULT_LANGUAGE =#if ($loginInfo.getLanguage().length() == 0) NULL
+#else N'${login.getLanguage()}'
+#end
+		,CHECK_POLICY     = OFF
+		,CHECK_EXPIRATION = OFF
+#else
+	CREATE LOGIN [$loginInfo.getObjectName()] FROM WINDOWS WITH
+		 DEFAULT_DATABASE = N'$loginInfo.getDefaultDbName()'
+		,DEFAULT_LANGUAGE =#if ($loginInfo.getLanguage().length() == 0) NULL#else N'${login.getLanguage()}'#end
+
+#end
+END
+go
+#set ( $listLoginRole = ${loginInfo.getListRole()} )
+#foreach ( $loginRole in $listLoginRole )
+EXEC [master].[dbo].[sp_addsrvrolemember]
+	 @loginame = N'${loginInfo.getObjectName()}'
+	,@rolename = N'${loginRole}'
+go
+#end
+#if ($loginInfo.getIsDenyLogin() == 1)
+DENY CONNECT SQL TO [${loginInfo.getObjectName()}]
+go
+#end
+

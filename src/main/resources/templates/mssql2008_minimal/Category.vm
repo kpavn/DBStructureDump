@@ -1,0 +1,25 @@
+USE [msdb]
+go
+#foreach ( $category in $categoryInfo )
+--------------------------------------------------------------------------------
+DECLARE
+	@intReturnCode INTEGER
+
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[sys].[syscategories] c
+	WHERE
+		c.[category_class] = 1
+		AND c.[name] = N'$category.getCategoryName()'
+	)
+BEGIN
+	EXEC @intReturnCode = [msdb].[dbo].[sp_add_category]
+		 @class = N'JOB'
+		,@type  = N'LOCAL'
+		,@name  = N'$category.getCategoryName()'
+END
+go
+#end
+

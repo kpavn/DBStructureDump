@@ -151,13 +151,11 @@
 	<thead>
 		<th align="center">Type</th>
 		<th align="center">Name</th>
-		<th align="center">Count</th>
 	</thead>
 #foreach ( $object in $DbObjectsInfo )
 	<tr>
 		<td align="left">$object.getObjectType()</td>
 		<td align="left"><a href="$object.getObjectType()/$object.getObjectName().#if ( $object.getObjectType() == "P" )$strProHhml#else$strSqlHhml#end">$object.getObjectName()</a></td>
-		<td align="right">$object.getCount()</td>
 	</tr>
 #end
 </table>

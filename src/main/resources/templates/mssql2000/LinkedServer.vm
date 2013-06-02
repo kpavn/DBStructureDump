@@ -1,0 +1,29 @@
+USE [master]
+go
+EXEC [master].[dbo].[sp_addlinkedserver]
+	 @server     = N'${linkedServerInfo.getObjectName()}'
+#if ( ${linkedServerInfo.getLinkedServerProduct()} )
+	,@srvproduct = N'${linkedServerInfo.getLinkedServerProduct()}'
+#end
+#if ( ${linkedServerInfo.getLinkedServerProvider()} )
+	,@provider   = N'${linkedServerInfo.getLinkedServerProvider()}'
+#end
+#if ( ${linkedServerInfo.getLinkedServerDataSource()} )
+	,@datasrc    = N'${linkedServerInfo.getLinkedServerDataSource()}'
+#end
+#if ( ${linkedServerInfo.getLinkedServerCatalog()} )
+	,@catalog    = N'${linkedServerInfo.getLinkedServerCatalog()}'
+#end
+go
+#foreach ( ${linkedServerLoginInfo} in ${linkedServerInfo.getLinkedServerLogins()} )
+#if ( ${linkedServerLoginInfo} )
+EXEC [master].[dbo].[sp_addlinkedsrvlogin]
+	 @rmtsrvname  = N'${linkedServerInfo.getObjectName()}'
+	,@useself     = N'False'
+	,@locallogin  = NULL
+	,@rmtuser     = N'${linkedServerLoginInfo}'
+	,@rmtpassword = N'?'
+go
+#end
+#end
+

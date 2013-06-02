@@ -1,0 +1,20 @@
+USE [${ruleInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${ruleInfo.getObjectOwner()}'
+	WHERE
+		o.[type] = N'${ruleInfo.getObjectType()}'
+		AND o.[name] = N'${ruleInfo.getObjectName()}'
+	)
+BEGIN
+	DROP RULE [${ruleInfo.getObjectOwner()}].[${ruleInfo.getObjectName()}]
+END
+go
+${ruleInfo.getRuleText()}
+go

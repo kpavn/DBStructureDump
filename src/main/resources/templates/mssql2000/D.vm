@@ -1,0 +1,20 @@
+USE [${defaultInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${defaultInfo.getObjectOwner()}'
+	WHERE
+		o.[type] = N'${defaultInfo.getObjectType()}'
+		AND o.[name] = N'${defaultInfo.getObjectName()}'
+	)
+BEGIN
+	DROP DEFAULT [${defaultInfo.getObjectOwner()}].[${defaultInfo.getObjectName()}]
+END
+go
+${defaultInfo.getDefaultText()}
+go

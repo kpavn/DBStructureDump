@@ -1,0 +1,65 @@
+USE [msdb]
+go
+#foreach ( $job in $jobInfo )
+--------------------------------------------------------------------------------
+DECLARE
+	 @jobId         BINARY(16)
+	,@intReturnCode INTEGER
+
+EXEC @intReturnCode = [msdb].[dbo].[sp_add_job]
+	 @job_name              = N'$job.getJobName()'
+	,@enabled               = $job.getIsEnabled()
+	,@notify_level_eventlog = 0
+	,@notify_level_email    = 0
+	,@notify_level_netsend  = 0
+	,@notify_level_page     = 0
+	,@delete_level          = 0
+	,@description           = N'$job.getJobDescription()'
+	,@category_name         = N'$job.getJobCategory()'
+	,@owner_login_name      = N'?'
+	,@job_id                = @jobId OUTPUT
+#set ( $listJobStep = $job.getListJobStep() )
+#foreach ( $jobStep in $listJobStep )
+
+EXEC @intReturnCode = [msdb].[dbo].[sp_add_jobstep]
+	 @job_id                = @jobId
+	,@step_name             = N'$jobStep.getJobStepName()'
+	,@step_id               = $jobStep.getJobStepId()
+	,@cmdexec_success_code  = 0
+	,@on_success_action     = 1
+	,@on_success_step_id    = 0
+	,@on_fail_action        = 2
+	,@on_fail_step_id       = 0
+	,@retry_attempts        = 0
+	,@retry_interval        = 0
+	,@os_run_priority       = 0
+	,@subsystem             = N'?'
+	,@command               = N'$jobStep.getJobStepCommand()'
+	,@server                =#if (! $jobStep.getJobStepServer()) NULL#else N'$jobStep.getJobStepServer()'#end
+
+	,@database_name         =#if (! $jobStep.getJobStepDatabaseName()) NULL#else N'$jobStep.getJobStepDatabaseName()'#end
+
+	,@flags                 = 0
+#end
+#set ( $listJobSchedule = $job.getListJobSchedule() )
+#foreach ( $jobSchedule in $listJobSchedule )
+
+EXEC @intReturnCode = [msdb].[dbo].[sp_add_jobschedule]
+	 @job_id                 = @jobId
+	,@name                   = N'$jobSchedule.getJobScheduleName()'
+	,@enabled                = $jobSchedule.getJobScheduleEnabled()
+	,@freq_type              = $jobSchedule.getJobScheduleFreqType()
+	,@freq_interval          = $jobSchedule.getJobScheduleFreqInterval()
+	,@freq_subday_type       = $jobSchedule.getJobScheduleFreqSubdayType()
+	,@freq_subday_interval   = $jobSchedule.getJobScheduleFreqSubdayInterval()
+	,@freq_relative_interval = $jobSchedule.getJobScheduleFreqRelativeInterval()
+	,@freq_recurrence_factor = $jobSchedule.getJobScheduleFreqRecurrenceFactor()
+	,@active_start_date      = $jobSchedule.getJobScheduleActiveStartDate()
+	,@active_end_date        = $jobSchedule.getJobScheduleActiveEndDate()
+	,@active_start_time      = $jobSchedule.getJobScheduleActiveStartTime()
+	,@active_end_time        = $jobSchedule.getJobScheduleActiveEndTime()
+	,@schedule_uid           = N'80a3c537-cd10-4732-8173-ebb7983640ff'
+#end
+go
+#end
+

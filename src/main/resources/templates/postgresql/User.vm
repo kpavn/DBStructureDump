@@ -1,0 +1,29 @@
+USE [${userInfo.getDbName()}]
+go
+#if ( ${userInfo.getLoginName()} )
+CREATE USER [${userInfo.getObjectName()}] FOR LOGIN [${userInfo.getLoginName()}]
+#else
+CREATE USER [${userInfo.getObjectName()}] FOR LOGIN [?]
+#end
+go
+#set ( $groupList = ${userInfo.getGroupList()} )
+#foreach ( $groupDTO in $groupList )
+EXEC [dbo].[sp_addrolemember]
+	 @rolename   = N'${groupDTO.getObjectName()}'
+	,@membername = N'${userInfo.getObjectName()}'
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = ${userInfo.getPermissionList()} )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permissionDTO in $permissionList )
+#set ( $intProtectType = $permissionDTO.GetProtectType() )
+#if (${intProtectType} == 204)GRANT ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectSchema()}].[${permissionDTO.getObjectName()}] TO [${userInfo.getObjectName()}] WITH GRANT OPTION#end
+#if (${intProtectType} == 205)GRANT ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectSchema()}].[${permissionDTO.getObjectName()}] TO [${userInfo.getObjectName()}]#end
+#if (${intProtectType} == 206)REVOKE ${permissionDTO.GetRight()} ON [${permissionDTO.getObjectSchema()}].[${permissionDTO.getObjectName()}] TO [${userInfo.getObjectName()}]#end
+
+go
+#end
+#end

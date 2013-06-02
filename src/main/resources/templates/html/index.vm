@@ -1,0 +1,38 @@
+#set ( $strSqlHhml = "sql.html" )
+#set ( $strProHhml = "PRO.html" )
+<html>
+<head>
+	<title>
+		index
+	</title>
+
+	<meta http-equiv="Content-Type" Content="text/html;charset=utf-8">
+
+	<meta name="author" content="MakeAllTablesDump">
+	<meta name="description" content="index">
+	<meta name="keywords" content="index">
+</head>
+<body>
+##------------------------------------------------------------------------------
+## header
+##------------------------------------------------------------------------------
+<h1>Index: all database objects</h1>
+##------------------------------------------------------------------------------
+## listing
+##------------------------------------------------------------------------------
+<table cellspacing="1" cellpadding="1" border="1">
+	<thead>
+		<th>Db</th>
+		<th>Type</th>
+		<th>Name</th>
+	</thead>
+#foreach ( $object in $DbObjectsInfo )
+<tr>
+		<td>$object.getDb()</td>
+		<td>$object.getObjectType()</td>
+		<td><a href="$object.getDb()/$object.getObjectType()/$object.getObjectName().#if ( $object.getObjectType() == "P" )$strProHhml#else$strSqlHhml#end">$object.getObjectName()</a></td>
+	</tr>
+#end
+</table>
+</body>
+</html>

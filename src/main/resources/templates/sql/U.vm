@@ -1,10 +1,15 @@
-IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'U' AND o.name = '$tableInfo.getTableName()' AND o.uid = User_id())
-	DROP TABLE $tableInfo.getTableName()
+--------------------------------------------------------------------------------
+-- Table Owner: $tableInfo.getObjectOwner()
+-- Table Name:  $tableInfo.getObjectName()
+-- Rows:        $tableInfo.getTableRowCount()
+--------------------------------------------------------------------------------
+IF EXISTS (SELECT 1 FROM sysobjects o WHERE o.type = 'U' AND o.name = '$tableInfo.getObjectName()' AND o.uid = User_id())
+	DROP TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()]
 go
 ##------------------------------------------------------------------------------
 ## table structure
 ##------------------------------------------------------------------------------
-CREATE TABLE $tableInfo.getTableName()
+CREATE TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()]
 (
 #set ( $columnList = $tableInfo.getColumnList() )
 #foreach ( $column in $columnList )
@@ -20,7 +25,7 @@ go
 #set ( $columnList = $tableInfo.getColumnList() )
 #foreach ( $column in $columnList )
 #if ( $column.isColumnRule() )
-EXEC sp_bindrule '$column.getColumnRule().getRuleName()', '$tableInfo.getTableName().$column.getColumnName().trim()'
+EXEC sp_bindrule '$column.getColumnRule().getRuleName()', '$tableInfo.getObjectName().$column.getColumnName().trim()'
 go
 #end
 #end
@@ -31,29 +36,10 @@ go
 #set ( $intCount = $constraintList.size() )
 #if ( $intCount > 0 )
 #foreach ( $constraint in $constraintList )
-ALTER TABLE $tableInfo.getTableName() ADD
+ALTER TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] ADD
 	$constraint.getRuleText()
 go
 #end
-#end
-##------------------------------------------------------------------------------
-## table lock type
-##------------------------------------------------------------------------------
-#if ( ($tableInfo.getTableLockType() == 'DATAPAGES') || ($tableInfo.getTableLockType() == 'DATAROWS'))
-DECLARE @db_name sysname
-
-SELECT @db_name = db_name()
-
--- You cannot run ALTER TABLE LOCK if the 'select into/bulkcopy/pllsort' option is off
-EXEC master..sp_dboption @db_name, 'select into/bulkcopy/pllsort', true
-CHECKPOINT
-
--- DRL locking scheme
-ALTER TABLE $tableInfo.getTableName() LOCK $tableInfo.getTableLockType()
-
-EXEC master..sp_dboption @db_name, 'select into/bulkcopy/pllsort', false
-CHECKPOINT
-go
 #end
 ##------------------------------------------------------------------------------
 ## indexes
@@ -66,14 +52,14 @@ IF NOT EXISTS (SELECT 1
 	FROM
 		sysindexes i
 	WHERE
-		i.id = object_id('$tableInfo.getTableName()')
+		i.id = object_id('$tableInfo.getObjectName()')
 		AND i.name = '$index.getIndexName()')
 BEGIN
 #if ( $index.isPrimaryKey() )
-	ALTER TABLE $tableInfo.getTableName() ADD CONSTRAINT $index.getIndexName() PRIMARY KEY#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end
+	ALTER TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] ADD CONSTRAINT $index.getIndexName() PRIMARY KEY#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end
 
 #else
-	CREATE#if ( $index.isUnique() ) UNIQUE#end#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end INDEX $index.getIndexName() ON $tableInfo.getTableName()
+	CREATE#if ( $index.isUnique() ) UNIQUE#end#if ( $index.isClustered() ) CLUSTERED#else NONCLUSTERED#end INDEX $index.getIndexName() ON [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()]
 #end
 		(
 #set ( $columnList = $index.getColumnList() )
@@ -106,9 +92,9 @@ IF NOT EXISTS (SELECT 1
 		sysreferences r
 	WHERE
 		r.constrid = object_id('$foreignKey.getForeignKeyName()')
-		AND r.tableid = object_id('$tableInfo.getTableName()'))
+		AND r.tableid = object_id('$tableInfo.getObjectName()'))
 BEGIN
-	ALTER TABLE $tableInfo.getTableName()
+	ALTER TABLE [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()]
 		ADD CONSTRAINT $foreignKey.getForeignKeyName() FOREIGN KEY
 		(
 #set ( $columnList = $foreignKey.getColumnList() )
@@ -152,9 +138,9 @@ go
 --------------------------------------------------------------------------------
 #foreach ( $permission in $permissionList )
 #set ( $intProtectType = $permission.GetProtectType() )
-#if ($intProtectType == 0)GRANT $permission.GetRight() ON $tableInfo.getTableName() TO $permission.GetUser() WITH GRANT OPTION#end
-#if ($intProtectType == 1)GRANT $permission.GetRight() ON $tableInfo.getTableName() TO $permission.GetUser()#end
-#if ($intProtectType == 2)REVOKE $permission.GetRight() ON $tableInfo.getTableName() TO $permission.GetUser()#end
+#if ($intProtectType == 0)GRANT $permission.GetRight() ON [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] TO $permission.GetUser() WITH GRANT OPTION#end
+#if ($intProtectType == 1)GRANT $permission.GetRight() ON [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] TO $permission.GetUser()#end
+#if ($intProtectType == 2)REVOKE $permission.GetRight() ON [$tableInfo.getObjectOwner()].[$tableInfo.getObjectName()] TO $permission.GetUser()#end
 
 ##go
 #end

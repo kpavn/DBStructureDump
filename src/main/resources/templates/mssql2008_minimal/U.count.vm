@@ -1,0 +1,9 @@
+Database:
+	$tableInfo.getDbName()
+Table:
+	$tableInfo.getObjectName()
+Table schema:
+	$tableInfo.getObjectSchema()
+Number of Rows:
+	$countInfo
+--------------------------------------------------------------------------------

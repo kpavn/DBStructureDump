@@ -1,0 +1,44 @@
+USE [${procedureInfo.getDbName()}]
+go
+IF EXISTS (
+	SELECT
+		1
+	FROM
+		[dbo].[sysobjects] o
+		INNER JOIN [dbo].[sysusers] u ON
+			u.[uid] = o.[uid]
+			AND u.[name] = N'${procedureInfo.getObjectOwner()}'
+	WHERE
+		o.[type] = N'P'
+		AND o.[name] = N'${procedureInfo.getObjectName()}'
+	)
+	BEGIN
+		DROP PROCEDURE [${procedureInfo.getObjectOwner()}].[${procedureInfo.getObjectName()}]
+	END
+go
+${procedureInfo.getProcedureText()}
+go
+##------------------------------------------------------------------------------
+## execution mode
+##------------------------------------------------------------------------------
+#if ( $procedureInfo.getProcedureExecMode() != 'unchained' )
+--------------------------------------------------------------------------------
+-- Procedure transaction execution mode
+--------------------------------------------------------------------------------
+EXEC sp_procxmode '$procedureInfo.getProcedureName()', '${procedureInfo.getProcedureExecMode()}'
+go
+#end
+##------------------------------------------------------------------------------
+## permissions
+##------------------------------------------------------------------------------
+#set ( $permissionList = $procedureInfo.getPermissionList() )
+#if ( $permissionList.size() > 0 )
+#foreach ( $permission in $permissionList )
+#set ( $intProtectType = $permission.GetProtectType() )
+#if ($intProtectType == 204)GRANT $permission.GetRight() ON [$procedureInfo.getObjectOwner()].[$procedureInfo.getObjectName()] TO [$permission.GetUser()] WITH GRANT OPTION#end
+#if ($intProtectType == 205)GRANT $permission.GetRight() ON [$procedureInfo.getObjectOwner()].[$procedureInfo.getObjectName()] TO [$permission.GetUser()]#end
+#if ($intProtectType == 206)REVOKE $permission.GetRight() ON [$procedureInfo.getObjectOwner()].[$procedureInfo.getObjectName()] TO [$permission.GetUser()]#end
+
+go
+#end
+#end

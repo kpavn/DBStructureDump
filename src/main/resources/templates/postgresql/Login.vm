@@ -1,0 +1,36 @@
+USE [master]
+go
+#foreach ( $login in $loginInfo )
+IF NOT EXISTS(SELECT 1 FROM [master].[sys].[syslogins] l WHERE l.[name] = N'$login.getLoginName()')
+BEGIN
+#if ($login.getIsNtName() == 0)
+	CREATE LOGIN [$login.getLoginName()] WITH
+		 PASSWORD         = N'?'
+		,SID              = $login.getSID()
+		,DEFAULT_DATABASE = N'$login.getDbName()'
+		,DEFAULT_LANGUAGE =#if ($login.getLanguage().length() == 0) NULL
+#else N'${login.getLanguage()}'
+#end
+		,CHECK_POLICY     = OFF
+		,CHECK_EXPIRATION = OFF
+#else
+	CREATE LOGIN [$login.getLoginName()] FROM WINDOWS WITH
+		 DEFAULT_DATABASE = N'$login.getDbName()'
+		,DEFAULT_LANGUAGE =#if ($login.getLanguage().length() == 0) NULL#else N'${login.getLanguage()}'#end
+
+#end
+END
+go
+#set ( $listLoginRole = $login.getListRole() )
+#foreach ( $loginRole in $listLoginRole )
+EXEC [master].[dbo].[sp_addsrvrolemember]
+	 @loginame = N'${login.getLoginName()}'
+	,@rolename = N'${loginRole}'
+go
+#end
+#if ($login.getIsDenyLogin() == 1)
+DENY CONNECT SQL TO [$login.getLoginName()]
+go
+#end
+#end
+

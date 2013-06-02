@@ -1,0 +1,9 @@
+DROP DATABASE ${DatabaseDTO.getDbName()};
+
+CREATE DATABASE ${DatabaseDTO.getDbName()} WITH
+	OWNER            = ${DatabaseDTO.getDbOwner()}
+	ENCODING         = '${DatabaseDTO.getDbEncoding()}'
+	TABLESPACE       = ${DatabaseDTO.getDbTablespace()}
+	LC_COLLATE       = '${DatabaseDTO.getDbLcCollate()}'
+	LC_CTYPE         = '${DatabaseDTO.getDbLcCtype()}'
+	CONNECTION LIMIT = ${DatabaseDTO.getDbConnectionLimit()};

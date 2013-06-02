@@ -1,0 +1,21 @@
+USE [msdb]
+go
+DECLARE
+	@intReturnCode INTEGER
+
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		[msdb].[sys].[syscategories] c
+	WHERE
+		c.[category_class] = 1
+		AND c.[name] = N'${categoryInfo.getObjectName()}'
+	)
+BEGIN
+	EXEC @intReturnCode = [msdb].[dbo].[sp_add_category]
+		 @class = N'JOB'
+		,@type  = N'LOCAL'
+		,@name  = N'${categoryInfo.getObjectName()}'
+END
+go
