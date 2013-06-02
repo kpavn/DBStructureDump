@@ -1,77 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Sybase ASE:
+	driver              = "com.sybase.jdbc3.jdbc.SybDriver"
+	connection          = "jdbc:sybase:Tds:"
+	connection_property = ""
+MS SQL Server (2000 / 2005 / 2008):
+	driver              = "net.sourceforge.jtds.jdbc.Driver"
+	connection          = "jdbc:jtds:sqlserver://"
+	connection_property = ";domain=...;"
+-->
 <MakeAllTablesDump>
-	<login
-	 rootDirectory = "C:\\Temp\\.DUMPS"
-	 driver        = "net.sourceforge.jtds.jdbc.Driver"
-	 name          = "..."
-	 password      = "..."
-	 instance      = "..."
-	 server        = "...:5900"
-	 template      = "sql">
-		<instance
-			threads   = "1"
-			logins    = "false"
-			datatypes = "false"
+	<parameter
+	 rootDirectory       = "C:\\Temp\\_DUMPS"
+	 driver              = "net.sourceforge.jtds.jdbc.Driver"
+	 connection          = "jdbc:jtds:sqlserver://"
+	 connection_property = ";domain=...;"
+	 name                = "..."
+	 password            = "..."
+	 file_extension      = ".sql"
+	/>
+
+	<template>
+		<database_product
+			name             = "Microsoft SQL Server"
+			major_version    = "10"
+			minor_version    = ".*"
+			template         = "mssql2008"
+			template_report  = "mssql2008_report"
+			query_config     = "config/MakeAllTablesDumpQueries.MSSQL2008.xml"
+			output_file_name = "C:\\Temp\\_DUMPS\\${date.format('yyyyMMdd_HHmmss', $dateStart)}.${Parameters.getServerText()}#if ( ${Parameters.getInstance()} ).${Parameters.getInstance()}#end\\#if ( ${dbObjectDTO.getParent()} )${dbObjectDTO.getParent().getObjectType()}\\#end#if ( ${dbObjectDTO.getDbName()} )${dbObjectDTO.getDbName()}\\#end#if ( ${dbObjectDTO.getObjectType()} )${dbObjectDTO.getObjectType()}\\#end#if ( ${dbObjectDTO.getObjectSchema()} )${dbObjectDTO.getObjectSchema()}.#end#if ( ${dbObjectDTO.getObjectNameText()} )${dbObjectDTO.getObjectNameText()}#else${dbObjectDTO.getObjectTypeText()}#end.${objectFileExtension}"
+			jobs             = "true"
+			categories       = "true"
+			linkedservers    = "true"
 		/>
-		<db name = "xol_core2">
-			<object
-				type           = "XXX"
-				name           = "\S*"
-				count          = "true"
-				text           = "true">
+		<database_product
+			name             = "Microsoft SQL Server"
+			major_version    = "9"
+			minor_version    = ".*"
+			template         = "mssql2005"
+			template_report  = "mssql2005_report"
+			query_config     = "config/MakeAllTablesDumpQueries.MSSQL2005.xml"
+			output_file_name = "C:\\Temp\\_DUMPS\\${date.format('yyyyMMdd_HHmmss', $dateStart)}.${Parameters.getServerText()}#if ( ${Parameters.getInstance()} ).${Parameters.getInstance()}#end\\#if ( ${dbObjectDTO.getParent()} )${dbObjectDTO.getParent().getObjectType()}\\#end#if ( ${dbObjectDTO.getDbName()} )${dbObjectDTO.getDbName()}\\#end#if ( ${dbObjectDTO.getObjectType()} )${dbObjectDTO.getObjectType()}\\#end#if ( ${dbObjectDTO.getObjectSchema()} )${dbObjectDTO.getObjectSchema()}.#end#if ( ${dbObjectDTO.getObjectNameText()} )${dbObjectDTO.getObjectNameText()}#else${dbObjectDTO.getObjectTypeText()}#end.${objectFileExtension}"
+			jobs             = "true"
+			categories       = "true"
+			linkedservers    = "true"
+		/>
+		<database_product
+			name             = "Microsoft SQL Server"
+			major_version    = "8"
+			minor_version    = ".*"
+			template         = "mssql2000"
+			template_report  = "mssql2000_report"
+			query_config     = "config/MakeAllTablesDumpQueries.MSSQL2000.xml"
+			output_file_name = "C:\\Temp\\_DUMPS\\${date.format('yyyyMMdd_HHmmss', $dateStart)}.${Parameters.getServerText()}#if ( ${Parameters.getInstance()} ).${Parameters.getInstance()}#end\\#if ( ${dbObjectDTO.getParent()} )${dbObjectDTO.getParent().getObjectType()}\\#end#if ( ${dbObjectDTO.getDbName()} )${dbObjectDTO.getDbName()}\\#end#if ( ${dbObjectDTO.getObjectType()} )${dbObjectDTO.getObjectType()}\\#end#if ( ${dbObjectDTO.getObjectOwner()} )${dbObjectDTO.getObjectOwner()}.#end#if ( ${dbObjectDTO.getObjectNameText()} )${dbObjectDTO.getObjectNameText()}#else${dbObjectDTO.getObjectTypeText()}#end.${objectFileExtension}"
+			jobs             = "true"
+			categories       = "true"
+			linkedservers    = "true"
+		/>
+		<database_product
+			name             = "Adaptive Server Enterprise"
+			major_version    = "11"
+			minor_version    = ".*"
+			template         = "sybase"
+			template_report  = "sybase_report"
+			query_config     = "config/MakeAllTablesDumpQueries.Sybase.xml"
+			output_file_name = "C:\\Temp\\_DUMPS\\${date.format('yyyyMMdd_HHmmss', $dateStart)}.${Parameters.getServerText()}#if ( ${Parameters.getInstance()} ).${Parameters.getInstance()}#end\\#if ( ${dbObjectDTO.getParent()} )${dbObjectDTO.getParent().getObjectType()}\\#end#if ( ${dbObjectDTO.getType()} )${dbObjectDTO.getType()}\\#end#if ( ${dbObjectDTO.getDbName()} )${dbObjectDTO.getDbName()}\\#end#if ( ${dbObjectDTO.getObjectType()} )${dbObjectDTO.getObjectType()}\\#end${dbObjectDTO.getObjectName()}.${objectFileExtension}"
+			jobs             = "false"
+			categories       = "false"
+			linkedservers    = "false"
+		/>
+		<database_product
+			name             = "PostgreSQL"
+			major_version    = ".*"
+			minor_version    = ".*"
+			template         = "postgresql"
+			query_config     = "config/MakeAllTablesDumpQueries.PostgreSQL.xml"
+			output_file_name = "C:\\Temp\\_DUMPS\\${date.format('yyyyMMdd_HHmmss', $dateStart)}.${Parameters.getServerText()}#if ( ${Parameters.getInstance()} ).${Parameters.getInstance()}#end\\#if ( ${dbObjectDTO.getParent()} )${dbObjectDTO.getParent().getObjectType()}\\#end#if ( ${dbObjectDTO.getDbName()} )${dbObjectDTO.getDbName()}\\#end#if ( ${dbObjectDTO.getObjectType()} )${dbObjectDTO.getObjectType()}\\#end#if ( ${dbObjectDTO.getObjectSchema()} )${dbObjectDTO.getObjectSchema()}\\#end#if ( ${dbObjectDTO.getObjectNameText()} )${dbObjectDTO.getObjectNameText()}#else${dbObjectDTO.getObjectTypeText()}#end.${objectFileExtension}"
+			jobs             = "false"
+			categories       = "false"
+			linkedservers    = "false"
+		/>
+	</template>
 
-				<bcp
-					run        = "false"
-					parameters = "-c"
-					sort       = "true"
-				/>
-			</object>
-			
+	<login
+	 server   = "....:1433"
+	 instance = ""
+	>
+		<instance
+			threads    = "2"
+			logins     = "true"
+			datatypes  = "true"
+			jobs       = "true"
+			categories = "true"
+		/>
+		<db name = "ProjectX">
 			<object
-				type           = "U"
-				name           = "ac_account"
-				count          = "true"
-				text           = "true">
-
-				<bcp
-					run        = "false"
-					parameters = "-c"
-					sort       = "true"
-				/>
-			</object>
-		</db>
-		<db name = "xol_trade11">
-			<object
-				type           = "\S*"
-				name           = "\S*"
-				count          = "false"
-				text           = "true">
-
-				<bcp
-					run        = "false"
-					parameters = "-c"
-					sort       = "true"
-				/>
-			</object>
-		</db>
-		<db name = "xol_trans11">
-			<object
-				type           = "P"
-				name           = "\S*"
-				count          = "false"
-				text           = "true">
-
-				<bcp
-					run        = "false"
-					parameters = "-c"
-					sort       = "true"
-				/>
-			</object>
-		</db>
-		<db name = "xol_hist11">
-			<object
-				type           = "\S*"
-				name           = "\S*"
+				type           = ".*"
+				name           = ".*"
 				count          = "false"
 				text           = "true">
 
@@ -83,4 +108,32 @@
 			</object>
 		</db>
 	</login>
+
+	<login
+	 server   = "...:1433"
+	 instance = ""
+	>
+		<instance
+			threads    = "2"
+			logins     = "true"
+			datatypes  = "true"
+			jobs       = "true"
+			categories = "true"
+		/>
+		<db name = ".*">
+			<object
+				type           = ".*"
+				name           = ".*"
+				count          = "false"
+				text           = "true">
+
+				<bcp
+					run        = "false"
+					parameters = "-c"
+					sort       = "true"
+				/>
+			</object>
+		</db>
+	</login>
+
 </MakeAllTablesDump>

@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MakeAllTablesDumpQueries>
+
+<!-- Server Logins                                                           -->
+<query name = "ServerLogins"><![CDATA[
+SELECT
+	 sl.[name]                                  AS [name]
+	,sl.[dbname]                                AS [dbname]
+	,sl.[language]                              AS [language]
+	,sl.[loginname]                             AS [fullname]
+	,sl.[isntname]                              AS [isntname]
+	,[master].[dbo].[fn_varbintohexstr](sl.sid) AS [sid]
+	,sl.[denylogin]                             AS [denylogin]
+FROM
+	[master].[dbo].[syslogins] sl
+WHERE
+	sl.[name] NOT IN ('sa')
+ORDER BY
+	sl.[sid] ASC
+]]></query>
+
+<!-- Server: LoginRoles                                                      -->
+<query name = "ServerLoginRoles"><![CDATA[
+SELECT
+	t.[login_role_name]
+FROM (
+	SELECT
+		 sl.[name]  AS [login_name]
+		,'sysadmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[sysadmin] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]       AS [login_name]
+		,'securityadmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[securityadmin] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]     AS [login_name]
+		,'serveradmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[serveradmin] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]    AS [login_name]
+		,'setupadmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[setupadmin] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]      AS [login_name]
+		,'processadmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[processadmin] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]   AS [login_name]
+		,'diskadmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[diskadmin] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]   AS [login_name]
+		,'dbcreator' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[dbcreator] = 1
+	UNION ALL
+	SELECT
+		 sl.[name]   AS [login_name]
+		,'bulkadmin' AS [login_role_name]
+	FROM
+		[master].[dbo].[syslogins] sl
+	WHERE
+		sl.[bulkadmin] = 1
+) t
+WHERE
+	t.[login_name] = ?
+]]></query>
+
+<!-- Server Categories                                                       -->
+<query name = "ServerCategories"><![CDATA[
+SELECT
+	 c.[name] AS [category_name]
+	,N'JOB'   AS [category_class]
+FROM
+	[msdb].[dbo].[sysjobs] j
+	INNER JOIN [msdb].[dbo].[syscategories] c ON
+		c.[category_id] = j.[category_id]
+WHERE
+	c.[category_class] = 1 -- job category
+	AND c.[category_type] = 1 -- local category
+GROUP BY
+	c.[name]
+]]></query>
+
+<!-- Server Jobs                                                             -->
+<query name = "ServerJobs"><![CDATA[
+SELECT
+	 j.[name]                   AS [job_name]
+	,j.[description]            AS [job_description]
+	,j.[enabled]                AS [job_enabled]
+	,c.[name]                   AS [job_category]
+	,suser_sname(j.[owner_sid]) AS [job_owner_login_name]
+FROM
+	[msdb].[dbo].[sysjobs] j
+	INNER JOIN [msdb].[dbo].[syscategories] c ON
+		c.[category_id] = j.[category_id]
+ORDER BY
+	j.[name] ASC
+]]></query>
+
+<!-- Server Job Steps                                                        -->
+<query name = "ServerJobSteps"><![CDATA[
+SELECT
+	 js.[step_name]     AS [step_name]
+	,js.[step_id]       AS [step_id]
+	,js.[command]       AS [step_command]
+	,js.[server]        AS [step_server]
+	,js.[database_name] AS [database_name]
+	,js.[subsystem]     AS [subsystem]
+FROM
+	[msdb].[dbo].[sysjobs] j
+	INNER JOIN [msdb].[dbo].[sysjobsteps] js ON
+		js.[job_id] = j.[job_id]
+WHERE
+	j.[name] = ?
+ORDER BY
+	js.[step_id] ASC
+]]></query>
+
+<!-- Server Job Schedules                                                    -->
+<query name = "ServerJobSchedules"><![CDATA[
+
+SELECT
+	 jsc.[name]                   AS [schedule_name]
+	,jsc.[enabled]                AS [schedule_enabled]
+	,jsc.[freq_type]              AS [schedule_freq_type]
+	,jsc.[freq_interval]          AS [schedule_freq_interval]
+	,jsc.[freq_subday_type]       AS [schedule_freq_subday_type]
+	,jsc.[freq_subday_interval]   AS [schedule_freq_subday_interval]
+	,jsc.[freq_relative_interval] AS [schedule_freq_relative_interval]
+	,jsc.[freq_recurrence_factor] AS [schedule_freq_recurrence_factor]
+	,jsc.[active_start_date]      AS [schedule_active_start_date]
+	,jsc.[active_end_date]        AS [schedule_active_end_date]
+	,jsc.[active_start_time]      AS [schedule_active_start_time]
+	,jsc.[active_end_time]        AS [schedule_active_end_time]
+FROM
+	[msdb].[dbo].[sysjobs] j
+	INNER JOIN [msdb].[dbo].[sysjobschedules] jsc ON
+		jsc.[job_id] = j.[job_id]
+WHERE
+	j.[name] = ?
+ORDER BY
+	jsc.[schedule_id] ASC
+]]></query>
+
+<!-- Server: Linked Servers                                                  -->
+<query name = "ServerLinkedServers"><![CDATA[
+SELECT
+	 s.[srvname]        AS [linked_server_name]
+	,s.[srvproduct]     AS [linked_server_product]
+	,s.[providername]   AS [linked_server_provider]
+	,s.[datasource]     AS [linked_server_data_source]
+	,s.[location]       AS [linked_server_location]
+	,s.[providerstring] AS [linked_server_provider_string]
+	,s.[catalog]        AS [linked_server_catalog]
+FROM
+	[master].[dbo].[sysservers] s
+WHERE
+	s.[srvid] <> 0
+ORDER BY
+	s.[srvname] ASC
+]]></query>
+
+<!-- Database Parameters                                                     -->
+<query name = "DatabaseParameters"><![CDATA[
+SELECT
+	 d.[dbid]    AS [dbid]
+	,0           AS [suid]
+	,d.[status]  AS [status]
+	,d.[version] AS [version]
+	,0           AS [logptr]
+	,d.[crdate]  AS [crdate]
+	,NULL        AS [dumptrdate]
+	,d.[status2] AS [status2]
+	,0           AS [audflags]
+	,0           AS [deftabaud]
+	,0           AS [defvwaud]
+	,0           AS [defpraud]
+	,0           AS [def_remote_type]
+	,'?'         AS [def_remote_loc]
+	,0           AS [status3]
+	,0           AS [status4]
+	,0           AS [snapshot_isolation_state]
+FROM
+	[master].[dbo].[sysdatabases] d
+WHERE
+	d.[name] = N'${databaseDTO.getDbName()}'
+]]></query>
+
+<!-- Database Devices                                                        -->
+<query name = "DatabaseDevices"><![CDATA[
+SELECT
+	 t.[name]                                          AS [name]
+	,t.[filename]                                      AS [phyname]
+	,CONVERT(BIGINT, t.[size]) * CONVERT(BIGINT, 8192) AS [size]
+	,NULL                                              AS [segmap]
+	,NULL                                              AS [crdate]
+	,CASE WHEN (t.[groupid] = 1) THEN 1 ELSE 0 END     AS [isDataDevice]
+	,CASE WHEN (t.[groupid] = 0) THEN 1 ELSE 0 END     AS [isLogDevice]
+FROM
+	[${databaseDTO.getDbName()}].[dbo].[sysfiles] t
+ORDER BY
+	t.[fileid]
+]]></query>
+
+<!-- Database Owner                                                          -->
+<query name = "DatabaseOwner"><![CDATA[
+SELECT
+	N'sa'
+]]></query>
+
+<!-- Database User                                                           -->
+<query name = "DatabaseUser"><![CDATA[
+SELECT
+	sl.[name] AS [login_name]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysusers] u
+	LEFT OUTER JOIN [master].[dbo].[syslogins] sl ON
+		sl.[sid] = u.[sid]
+WHERE
+	u.[name] = ?
+]]></query>
+
+<!-- Database User Groups                                                    -->
+<query name = "DatabaseUserGroups"><![CDATA[
+SELECT
+	g.[name] AS [group_name]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysusers] u
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysmembers] m ON
+		m.[memberuid] = u.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] g ON
+		g.[uid] = m.[groupuid]
+WHERE
+	u.[name] = ?
+ORDER BY
+	g.[name]
+]]></query>
+
+<!-- Database Groups                                                         -->
+<query name = "DatabaseGroups"><![CDATA[
+SELECT
+	u.[name] AS [group_name]
+FROM
+	[${strDatabaseName}].[dbo].[sysmembers] m
+	INNER JOIN [${strDatabaseName}].[dbo].[sysusers] u ON
+		u.[uid] = m.[groupuid]
+GROUP BY
+	u.[name]
+]]></query>
+
+<!-- Database Group Users                                                    -->
+<query name = "GroupUsers"><![CDATA[
+SELECT
+	u.[name] AS [user_name]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysusers] g
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysmembers] m ON
+		m.[groupuid] = g.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = m.[memberuid]
+WHERE
+	g.[name] = ?
+ORDER BY
+	u.[name]
+]]></query>
+
+<!-- Database Group Permissions                                              -->
+<query name = "GroupPermissions"><![CDATA[
+SELECT
+	 o.[type]        AS [object_type]
+	,o.[name]        AS [object_name]
+	,u.[name]        AS [object_owner]
+	,NULL            AS [object_schema]
+	,p.[protecttype] AS [protect_type]
+	,v.[name]        AS [protect_name]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysprotects] p ON
+		p.[id] = o.[id]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u1 ON
+		u1.[uid] = p.[uid]
+	INNER JOIN [master].[dbo].[spt_values] v ON
+		v.[number] = p.[action]
+		AND v.[type] = 'T'
+WHERE
+	u1.[name] = ?
+ORDER BY
+	 o.[type] ASC
+	,o.[name] ASC
+	,u.[name] ASC
+	,p.[protecttype] ASC
+	,v.[name] ASC
+]]></query>
+
+<!-- Database Objects                                                        -->
+<query name = "GetAllDatabaseObjects"><![CDATA[
+SELECT
+	 o.[type] AS [type]
+	,o.[name] AS [name]
+	,u.[name] AS [owner]
+	,NULL     AS [schema]
+FROM
+	[${strDatabaseName}].[dbo].[sysobjects] o
+	LEFT OUTER JOIN [${strDatabaseName}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+WHERE
+	o.[type] IN (N'V', N'U', N'S', N'P', N'TR', N'D', N'R')
+UNION ALL
+SELECT
+	'User'    AS [type]
+	,u.[name] AS [name]
+	,NULL     AS [owner]
+	,NULL     AS [schema]
+FROM
+	[${strDatabaseName}].[dbo].[sysusers] u
+WHERE
+	u.[islogin] = 1
+UNION ALL
+SELECT
+	'Group'   AS [type]
+	,u.[name] AS [name]
+	,NULL     AS [owner]
+	,NULL     AS [schema]
+FROM
+	[${strDatabaseName}].[dbo].[sysusers] u
+WHERE
+	u.[islogin] = 0
+UNION ALL
+SELECT
+	 'udt' AS [type]
+	,'udt' AS [name]
+	,NULL  AS [owner]
+	,NULL  AS [schema]
+]]></query>
+
+<!-- Database UDT                                                            -->
+<query name = "DatabaseUDT"><![CDATA[
+SELECT
+	 t.[name]              AS [name]
+	,t2.[name]             AS [base_type]
+	,t.[length]            AS [length]
+	,t.[xprec]             AS [prec]
+	,t.[xscale]            AS [scale]
+	,t.[allownulls]        AS [allownulls]
+	,t.[tdefault]          AS [tdefault]
+	,ISNULL(t2.[name], '') AS [default_name]
+	,u.[name]              AS [owner]
+	,NULL                  AS [schema]
+	,NULL                  AS [type]
+FROM
+	[${strDatabaseName}].[dbo].[systypes] t
+	INNER JOIN [${strDatabaseName}].[dbo].[systypes] t2 ON
+		t2.[xusertype] = t.[xtype]
+	LEFT OUTER JOIN [${strDatabaseName}].[dbo].[sysusers] u ON
+		u.[uid] = t.[uid]
+WHERE
+	t.[xusertype] <> t.[xtype]
+ORDER BY
+	t.[name] ASC
+]]></query>
+
+<!-- Database User Permissions                                               -->
+<query name = "UserPermissions"><![CDATA[
+SELECT
+	 o.[type]        AS [object_type]
+	,o.[name]        AS [object_name]
+	,u.[name]        AS [object_owner]
+	,NULL            AS [object_schema]
+	,p.[protecttype] AS [protect_type]
+	,v.[name]        AS [protect_name]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysprotects] p ON
+		p.[id] = o.[id]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u1 ON
+		u1.[uid] = p.[uid]
+	INNER JOIN [master].[dbo].[spt_values] v ON
+		v.[number] = p.[action]
+		AND v.[type] = 'T'
+WHERE
+	u1.[name] = ?
+ORDER BY
+	 o.[type] ASC
+	,o.[name] ASC
+	,u.[name] ASC
+	,p.[protecttype] ASC
+	,v.[name] ASC
+]]></query>
+
+<query name = "GetTableStructure"><![CDATA[
+SELECT
+	 c.[name]     AS [column_name]
+	,t.[name]     AS [type_name]
+	,c.[length]   AS [type_length]
+	,c.[prec]     AS [prec]
+	,c.[scale]    AS [scale]
+	,CASE
+		WHEN (t.[usertype] <= 100) THEN
+			1 -- internal type
+		ELSE
+			0 -- user type
+	END           AS [user_type]
+	,CASE
+		WHEN (ISNULL(c.[isnullable], 0) = 0) THEN
+			'NOT NULL'
+		ELSE
+			'NULL'
+	END           AS [nullable]
+	,o_def.[name] AS [default_name]
+	,NULL         AS [rule_name]
+	,NULL         AS [constraint_name]
+	,CASE
+		WHEN (c.[autoval] IS NOT NULL) THEN
+			1
+		ELSE
+			0
+	END           AS [is_column_identity]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	LEFT OUTER JOIN [${dbObjectDTO.getDbName()}].[dbo].[syscolumns] c ON
+		c.[id] = o.[id]
+	LEFT OUTER JOIN [${dbObjectDTO.getDbName()}].[dbo].[systypes] t ON
+		t.[xusertype] = c.[xusertype]
+	LEFT OUTER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o_def ON
+		o_def.[id] = c.[cdefault]
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+ORDER BY
+	c.[colid] ASC
+]]></query>
+
+<query name = "CountOfTableIndexes"><![CDATA[
+SELECT
+	COUNT(*)
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysindexes] i ON
+		i.[id] = o.[id]
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+	AND i.[name] NOT LIKE '_WA_%'
+]]></query>
+
+<query name = "CountOfObjects"><![CDATA[
+SELECT
+	COUNT(*)
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+]]></query>
+
+<query name = "IndexParameters"><![CDATA[
+SELECT
+	 i.[name]           AS [index_name]
+	,0                  AS [is_unique]
+	,CASE
+		WHEN i.[indid] = 1 THEN
+			1
+		ELSE
+			0
+	END                 AS [is_clustered_index]
+	,0                  AS [is_primary_key_index]
+	,ik.[keyno]         AS [index_column_id]
+	,c.[name]           AS [index_column_name]
+	,0                  AS [index_column_sort_order]
+	,0                  AS [unused_column]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysindexes] i ON
+		i.[id] = o.[id]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysindexkeys] ik ON
+		ik.[id] = i.[id]
+		AND ik.[indid] = i.[indid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[syscolumns] c ON
+		c.[id] = o.[id]
+		AND c.[colid] = ik.[colid]
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+	AND i.[name] NOT LIKE '_WA_%'
+ORDER BY
+	 i.[indid] ASC
+	,ik.[keyno] ASC
+]]></query>
+
+<query name = "ObjectReferenceKeys"><![CDATA[
+SELECT
+	 o_fk.[name]  AS [constraint_name]
+	,0            AS [frgndbid]
+	,0            AS [pmrydbid]
+	,'?'          AS [ref_db_name]
+	,0            AS [reftabid]
+	,o_ref.[name] AS [reftabid_name]
+	,u_ref.[name] AS [reftabid_owner]
+	,NULL         AS [reftabid_schema]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysforeignkeys] fk ON
+		fk.[fkeyid] = o.[id]
+		AND fk.[keyno] = 1
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o_ref ON
+		o_ref.[id] = fk.[rkeyid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u_ref ON
+		u_ref.[uid] = o_ref.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o_fk ON
+		o_fk.[id] = fk.[constid]
+WHERE
+	o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+	AND o.[name] = N'${dbObjectDTO.getObjectName()}'
+]]></query>
+
+<query name = "ObjectReferenceKeyParameters"><![CDATA[
+SELECT
+	 cf.[name] AS [parent_column_name]
+	,cr.[name] AS [referenced_column_name]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysforeignkeys] fk ON
+		fk.[fkeyid] = o.[id]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o_fk ON
+		o_fk.[id] = fk.[constid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[syscolumns] cf ON
+		cf.[id] = fk.[fkeyid]
+		AND cf.[colid] = fk.[fkey]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[syscolumns] cr ON
+		cr.[id] = fk.[rkeyid]
+		AND cr.[colid] = fk.[rkey]
+WHERE
+	o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+	AND o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o_fk.[name] = N'${dbObjectDTO.getForeignKeyName()}'
+ORDER BY
+	fk.[keyno] ASC
+]]></query>
+
+<query name = "CountOfAllRows"><![CDATA[
+SELECT
+	COUNT(*)
+FROM
+	[${dbObjectDTO.getDbName()}].[${dbObjectDTO.getObjectOwner()}].[${dbObjectDTO.getObjectName()}] t
+]]></query>
+
+<query name = "ObjectConstraints"><![CDATA[
+SELECT
+	NULL
+]]></query>
+
+<query name = "GetObjectText"><![CDATA[
+SELECT
+	sc.[text]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[syscomments] sc ON
+		sc.[id] = o.[id]
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+ORDER BY
+	 sc.[number] ASC
+	,sc.[colid] ASC
+]]></query>
+
+<query name = "GetObjectPermissions"><![CDATA[
+SELECT
+	 u1.[name]
+	,v.[name]
+	,p.[protecttype]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysprotects] p ON
+		p.[id] = o.[id]
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u1 ON
+		u1.[uid] = p.[uid]
+	INNER JOIN [master].[dbo].[spt_values] v ON
+		v.[number] = p.[action]
+		AND v.[type] = 'T'
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+	AND o.[type] = N'${dbObjectDTO.getObjectType()}'
+	AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+ORDER BY
+	 p.[protecttype] ASC
+	,u1.[name] ASC
+	,v.[name] ASC
+]]></query>
+
+<query name = "ObjectTriggers"><![CDATA[
+SELECT
+	 tr.[type]     AS [trigger_type]
+	,tr.[name]     AS [trigger_name]
+	,u_tr.[name]   AS [trigger_owner]
+	,NULL          AS [trigger_schema]
+FROM
+	[${dbObjectDTO.getDbName()}].[dbo].[sysobjects] o
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u ON
+		u.[uid] = o.[uid]
+		AND u.[name] = N'${dbObjectDTO.getObjectOwner()}'
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysobjects] tr ON
+		tr.[parent_obj] = o.[id]
+		AND tr.[type] = N'TR'
+	INNER JOIN [${dbObjectDTO.getDbName()}].[dbo].[sysusers] u_tr ON
+		u_tr.[uid] = tr.[uid]
+WHERE
+	o.[name] = N'${dbObjectDTO.getObjectName()}'
+ORDER BY
+	 tr.[name]
+	,u_tr.[name]
+]]></query>
+
+</MakeAllTablesDumpQueries>

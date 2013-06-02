@@ -1,0 +1,51 @@
+<MakeAllTablesDumpQueries>
+
+<!-- Database Objects                                                        -->
+<query name = "GetAllDatabaseObjects"><![CDATA[
+SELECT
+	CASE
+		WHEN t.table_type = 'BASE TABLE' THEN 'U'
+		WHEN t.table_type = 'VIEW'       THEN 'V'
+		ELSE                                  t.table_type
+	END            AS type
+	,t.table_name   AS name
+	,NULL           AS owner
+	,t.table_schema AS schema
+FROM
+	information_schema.tables t
+WHERE
+	t.table_catalog = '${strDatabaseName}'
+]]></query>
+
+<query name = "GetTableStructure"><![CDATA[
+SELECT
+	 t.column_name              AS column_name
+	,t.data_type                AS type_name
+	,t.character_maximum_length AS type_length
+	,t.numeric_precision        AS prec
+	,t.numeric_scale            AS scale
+	,NULL                       AS user_type
+	,CASE
+		WHEN t.is_nullable = 'NO' THEN
+			'NOT NULL'
+		ELSE
+			'NULL'
+	END               AS nullable
+	,t.column_default AS default_name
+	,NULL             AS rule_name
+	,NULL             AS constraint_name
+	,CASE
+		WHEN SUBSTR(COALESCE(t.column_default, ''), 1, 8) = 'nextval(' THEN
+			1
+		ELSE
+			0
+	end               AS is_column_identity
+FROM
+	information_schema.columns t
+WHERE
+	t.table_name = '${dbObjectDTO.getObjectName()}'
+ORDER BY
+	t.ordinal_position
+]]></query>
+
+</MakeAllTablesDumpQueries>
