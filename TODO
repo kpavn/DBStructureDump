@@ -1,3 +1,6 @@
 Change log4j configuration to slf4j/logback analog
-Change all occurrences of log4j to slf4j
++ Change all occurrences of log4j to slf4j
 Perform test build
+Add unit tests/integration tests
+Refactor code, remove if/else long branches
+Add Spring support to reduce complexity of code
